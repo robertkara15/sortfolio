@@ -41,9 +41,11 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'users',
     'images',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -136,4 +138,6 @@ import os
 
 MEDIA_URL = '/media/'  # URL for accessing media files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Folder where images are stored
+
+CORS_ALLOW_ALL_ORIGINS = True
 
