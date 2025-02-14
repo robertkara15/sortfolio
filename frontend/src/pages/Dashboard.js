@@ -1,42 +1,68 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
-function Dashboard() {
+const Dashboard = () => {
   const [images, setImages] = useState([]);
+  const navigate = useNavigate(); // Initialize navigation
 
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const res = await axios.get("http://127.0.0.1:8000/images/my-images/", {
-          headers: {
-            "Authorization": `Bearer ${localStorage.getItem("token")}`,
-          },
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found");
+          return;
+        }
+
+        const response = await axios.get("http://127.0.0.1:8000/images/my-images/", {
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setImages(res.data);
+
+        setImages(response.data);
       } catch (error) {
-        alert("Failed to fetch images.");
+        console.error("Failed to fetch images:", error);
       }
     };
+
     fetchImages();
   }, []);
 
   return (
     <div>
-      <h2>My Uploaded Images</h2>
-      {images.length === 0 ? (
-        <p>No images uploaded yet.</p>
-      ) : (
-        <div>
-          {images.map((image) => (
-            <div key={image.id}>
-              <img src={`http://127.0.0.1:8000${image.image}`} alt="Uploaded" style={{ width: "200px" }} />
-              <p><strong>Tags:</strong> {image.tags.join(", ")}</p>
+      <h2>My Images</h2>
+
+      {/* Button to go to Upload Page */}
+      <button onClick={() => navigate("/upload")} style={uploadButtonStyle}>
+        Upload New Images
+      </button>
+
+      <div style={{ display: "flex", flexWrap: "wrap", marginTop: "10px" }}>
+        {images.length === 0 ? (
+          <p>No images found.</p>
+        ) : (
+          images.map((img) => (
+            <div key={img.id} style={{ margin: "10px", padding: "10px", border: "1px solid #ddd" }}>
+              <img src={img.image_url} alt="Uploaded" style={{ width: "150px", height: "150px", objectFit: "cover" }} />
+              <p>Tags: {img.tags?.join(", ") || "No tags"}</p>
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
-}
+};
+
+// Style for Upload Button
+const uploadButtonStyle = {
+  padding: "10px",
+  fontSize: "16px",
+  marginBottom: "15px",
+  cursor: "pointer",
+  backgroundColor: "#007bff",
+  color: "#fff",
+  border: "none",
+  borderRadius: "5px",
+};
 
 export default Dashboard;

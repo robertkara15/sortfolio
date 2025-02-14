@@ -10,11 +10,10 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        const res = await axios.post("http://localhost:8000/users/login/", {
-            username,
-            password,
-        });
-        
+      const res = await axios.post("http://localhost:8000/users/login/", {
+        username,
+        password,
+      });
 
       // Save token in localStorage
       localStorage.setItem("token", res.data.access);
@@ -25,7 +24,6 @@ function Login() {
     } catch (error) {
       console.error("Login error:", error); // Logs full error for debugging
 
-      // ✅ Fix error handling
       let errorMessage = "An error occurred. Please try again.";
 
       if (error.response) {
@@ -48,6 +46,10 @@ function Login() {
         <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} required />
         <button type="submit">Login</button>
       </form>
+
+      {/* Button to go to Register Page */}
+      <p>Don't have an account?</p>
+      <button onClick={() => navigate("/register")}>Register</button>
     </div>
   );
 }
