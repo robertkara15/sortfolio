@@ -7,9 +7,9 @@ def user_directory_path(instance, filename):
 
 class UploadedImage(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # Each image belongs to a user
-    image = models.ImageField(upload_to=user_directory_path)  # Store in user-specific folder
+    image = models.CharField(max_length=255)  # Store S3 key instead of local path
     tags = models.JSONField(default=list)  # Store metadata as a list of tags
     uploaded_at = models.DateTimeField(auto_now_add=True)  # Auto timestamp
 
     def __str__(self):
-        return f"{self.user.username} - {self.image.name}"
+        return f"{self.user.username} - {self.image}"
