@@ -119,3 +119,29 @@ class FinalizeImageUploadView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=500)
 
+class GenerateTagsView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        try:
+            image_file = request.FILES.get("image")
+            if not image_file:
+                return Response({"error": "No image provided"}, status=400)
+
+            # Use AWS Rekognition to analyze image (without uploading)
+            rekognition_response = rekognition_client.detect_labels(
+                Image={"Bytes": image_file.read()},  # Analyze raw image bytes
+                MaxLabels=10
+            )
+
+            ai_tags = sorted(rekognition_response["Labels"], key=lambda x: x["Confidence"], reverse=True)[:5]
+            top_tags = [label["Name"] for label in ai_tags]  # Extract top 5 tag names
+
+            return Response({
+                "message": "Tags generated successfully",
+                "tags": top_tags
+            }, status=200)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)

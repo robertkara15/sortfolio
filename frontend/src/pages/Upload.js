@@ -18,45 +18,24 @@ function Upload() {
     backgroundColor: "#f9f9f9",
   };
 
+  // Handles image drop WITHOUT uploading images
   const onDrop = useCallback(async (acceptedFiles) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You must be logged in to upload images.");
-      return;
-    }
-
     const fileObjects = acceptedFiles.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
-      id: null, // Will be assigned after final upload
+      id: null, // Will be assigned after manual upload
     }));
 
     setImages((prev) => [...prev, ...fileObjects]);
 
     // Fetch AI tags immediately without uploading the image
     for (const fileObj of fileObjects) {
-      const formData = new FormData();
-      formData.append("image", fileObj.file);
-
-      try {
-        const response = await axios.post(
-          "http://127.0.0.1:8000/images/upload/", 
-          formData, 
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-
+      const tags = await getAiTagsForImage(fileObj.file);
+      if (tags.length > 0) {
         setAiTags((prev) => ({
           ...prev,
-          [fileObj.file.name]: response.data.data.tags,
+          [fileObj.file.name]: tags,
         }));
-
-      } catch (error) {
-        console.error("AI tag fetch failed:", error);
       }
     }
   }, []);
@@ -67,61 +46,98 @@ function Upload() {
     multiple: true,
   });
 
+  const getAiTagsForImage = async (imageFile) => {
+    const token = localStorage.getItem("token");
+    if (!token) return [];
+  
+    const formData = new FormData();
+    formData.append("image", imageFile);
+  
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/images/generate-tags/", formData, {  // ✅ Corrected endpoint
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+  
+      return response.data.tags || [];
+    } catch (error) {
+      console.error("Error fetching AI tags:", error);
+      return [];
+    }
+  };
+  
+
   const toggleTag = (imageName, tag) => {
     setSelectedTags((prev) => {
       const tags = prev[imageName] || [];
-      if (tags.includes(tag)) {
-        return { ...prev, [imageName]: tags.filter((t) => t !== tag) };
-      } else {
-        return { ...prev, [imageName]: [...tags, tag] };
-      }
+      return {
+        ...prev,
+        [imageName]: tags.includes(tag) ? tags.filter((t) => t !== tag) : [...tags, tag],
+      };
     });
   };
 
   const handleTagInput = (imageName, tagText) => {
-    const tags = tagText.split(",").map(tag => tag.trim()).slice(0, 5);
+    const tags = tagText.split(",").map((tag) => tag.trim()).slice(0, 5);
     setCustomTags((prev) => ({ ...prev, [imageName]: tags }));
   };
 
+  // ✅ Uploads the image ONLY when "Finalize Upload" is clicked
   const handleFinalizeUpload = async (imageObj, index) => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("You must be logged in to finalize image.");
+      alert("You must be logged in to upload images.");
       return;
     }
-
+  
+    // ✅ Collect ONLY the selected AI and custom tags
     const finalTags = [
-      ...(selectedTags[imageObj.file.name] || []),
-      ...(customTags[imageObj.file.name] || []),
+      ...(selectedTags[imageObj.file.name] || []),  // ✅ Only selected AI tags
+      ...(customTags[imageObj.file.name] || [])     // ✅ Custom tags added manually
     ];
-
+  
+    if (finalTags.length === 0) {
+      alert("Please select at least one tag before uploading.");
+      return;
+    }
+  
     const formData = new FormData();
     formData.append("image", imageObj.file);
-
+  
     try {
-      // Upload the image along with final tags
-      const response = await axios.post(
-        "http://127.0.0.1:8000/images/finalize-upload/",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
+      // ✅ Upload the image first
+      const uploadResponse = await axios.post("http://127.0.0.1:8000/images/upload/", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+  
+      const uploadedImageId = uploadResponse.data.data.id;
+  
+      // Send ONLY selected tags
+      await axios.post("http://127.0.0.1:8000/images/finalize-upload/", {
+        image_id: uploadedImageId,
+        tags: finalTags,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      // Remove uploaded image from the list
       setImages((prevImages) => prevImages.filter((_, i) => i !== index));
-
-      // Redirect to dashboard when all images are uploaded
+  
+      // Redirect to dashboard when the last image is uploaded
       if (images.length === 1) {
         navigate("/dashboard");
       }
-
+  
     } catch (error) {
-      console.error("Finalization failed:", error);
+      console.error("Upload failed:", error);
     }
   };
+  
 
   return (
     <div>
@@ -139,7 +155,7 @@ function Upload() {
               <img src={imageObj.preview} alt="Preview" style={{ width: "150px", height: "150px", objectFit: "cover" }} />
               <p>{imageObj.file.name}</p>
 
-              {aiTags[imageObj.file.name] && (
+              {aiTags[imageObj.file.name] && aiTags[imageObj.file.name].length > 0 && (
                 <div>
                   <p>Select Tags:</p>
                   {aiTags[imageObj.file.name].map((tag) => (
