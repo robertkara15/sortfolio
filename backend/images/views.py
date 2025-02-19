@@ -1,15 +1,15 @@
 import os
 import boto3
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-from django.conf import settings
+from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.conf import settings
 from .models import UploadedImage
 from .serializers import UploadedImageSerializer
-from .aws_rekognition import analyze_image  # Import AWS Rekognition
+from .aws_rekognition import analyze_image  # Ensure this import is correct
 
 # AWS S3 client
 s3_client = boto3.client(
@@ -18,6 +18,15 @@ s3_client = boto3.client(
     aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
     region_name=settings.AWS_REGION
 )
+
+# AWS Rekognition client
+rekognition_client = boto3.client(
+    "rekognition",
+    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+    region_name=settings.AWS_REGION
+)
+
 
 class ImageUploadView(APIView):
     permission_classes = [IsAuthenticated]
@@ -36,21 +45,20 @@ class ImageUploadView(APIView):
             # Upload image to S3
             s3_client.upload_fileobj(image_file, s3_bucket, s3_key)
 
-            # Analyze image with AWS Rekognition
-            ai_tags = analyze_image(s3_bucket, s3_key)
+            # Analyze image with AWS Rekognition (get top 5 tags sorted by confidence)
+            rekognition_response = rekognition_client.detect_labels(
+                Image={"S3Object": {"Bucket": s3_bucket, "Name": s3_key}},
+                MaxLabels=10
+            )
 
-            # Get user-provided tags
-            user_tags = request.data.get("tags", "[]")
-            user_tags = eval(user_tags) if isinstance(user_tags, str) else user_tags
+            ai_tags = sorted(rekognition_response["Labels"], key=lambda x: x["Confidence"], reverse=True)[:5]
+            top_tags = [label["Name"] for label in ai_tags]  # Extract top 5 tag names
 
-            # Merge AI-generated and user tags (max 5)
-            final_tags = list(set(ai_tags + user_tags))[:5]
-
-            # Save image info to database
+            # Save image in DB without tags (tags will be added when user confirms)
             uploaded_image = UploadedImage.objects.create(
                 user=request.user,
-                image=s3_key,  # Store S3 key instead of local path
-                tags=final_tags
+                image=s3_key,
+                tags=[]  # No tags yet
             )
 
             return Response({
@@ -58,12 +66,13 @@ class ImageUploadView(APIView):
                 "data": {
                     "id": uploaded_image.id,
                     "image_url": f"https://{s3_bucket}.s3.amazonaws.com/{s3_key}",
-                    "tags": final_tags
+                    "tags": top_tags  # Send only the top 5 AI tags for selection
                 },
             }, status=201)
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+
 
 
 class UserImagesView(APIView):
@@ -81,15 +90,32 @@ class UserImagesView(APIView):
                 }
                 for image in user_images
             ]
-            return Response(image_data)
+            return Response(image_data, status=200)
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
 
-class AddTagsView(APIView):
+class FinalizeImageUploadView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        tags_data = request.data.get("tags", {})
-        for image_name, tags in tags_data.items():
-            image = UploadedImage.o
+        try:
+            image_id = request.data.get("image_id")
+            selected_tags = request.data.get("tags", [])
+
+            if not image_id:
+                return Response({"error": "Image ID is required"}, status=400)
+
+            image = UploadedImage.objects.filter(id=image_id, user=request.user).first()
+            if not image:
+                return Response({"error": "Image not found or unauthorized"}, status=404)
+
+            # Update image tags
+            image.tags = selected_tags
+            image.save()
+
+            return Response({"message": "Tags updated successfully!", "tags": image.tags}, status=200)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
