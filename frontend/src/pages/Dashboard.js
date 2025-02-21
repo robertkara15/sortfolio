@@ -1,13 +1,16 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [images, setImages] = useState([]);
-  const navigate = useNavigate(); // Initialize navigation
+  const [albums, setAlbums] = useState([]);
+  const [newAlbumName, setNewAlbumName] = useState("");
+  const [selectedCoverImage, setSelectedCoverImage] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchImages = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -15,54 +18,92 @@ const Dashboard = () => {
           return;
         }
 
-        const response = await axios.get("http://127.0.0.1:8000/images/my-images/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const [imageResponse, albumResponse] = await Promise.all([
+          axios.get("http://127.0.0.1:8000/images/my-images/", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get("http://127.0.0.1:8000/images/albums/", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
-        setImages(response.data);
+        setImages(imageResponse.data);
+        setAlbums(albumResponse.data);
       } catch (error) {
-        console.error("Failed to fetch images:", error);
+        console.error("Failed to fetch data:", error);
       }
     };
 
-    fetchImages();
+    fetchData();
   }, []);
+
+  const createAlbum = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+
+      const response = await axios.post(
+        "http://127.0.0.1:8000/images/create-album/",
+        { name: newAlbumName, cover_image_id: selectedCoverImage },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setAlbums([...albums, { id: response.data.album_id, name: newAlbumName }]);
+      setNewAlbumName("");
+      setSelectedCoverImage(null);
+    } catch (error) {
+      console.error("Failed to create album:", error);
+    }
+  };
 
   return (
     <div>
-      <h2>My Images</h2>
-
-      {/* Button to go to Upload Page */}
-      <button onClick={() => navigate("/upload")} style={uploadButtonStyle}>
+      <button 
+        onClick={() => navigate("/upload")} 
+        style={{
+          padding: "10px",
+          fontSize: "16px",
+          marginBottom: "15px",
+          cursor: "pointer",
+          backgroundColor: "#007bff",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+        }}
+      >
         Upload New Images
       </button>
-
+      
       <div style={{ display: "flex", flexWrap: "wrap", marginTop: "10px" }}>
-        {images.length === 0 ? (
-          <p>No images found.</p>
-        ) : (
-          images.map((img) => (
-            <div key={img.id} style={{ margin: "10px", padding: "10px", border: "1px solid #ddd" }}>
-              <img src={img.image_url} alt="Uploaded" style={{ width: "150px", height: "150px", objectFit: "cover" }} />
-              <p>Tags: {img.tags?.join(", ") || "No tags"}</p>
-            </div>
-          ))
-        )}
+        {albums.map((album) => (
+          <div 
+            key={album.id} 
+            onClick={() => navigate(`/album/${album.id}`)}
+            style={{ cursor: "pointer", padding: "10px", border: "1px solid #ddd" }}
+          >
+            <img src={album.cover_image_url || "default.jpg"} alt="Cover" width="100" />
+            <p>{album.name}</p>
+          </div>
+        ))}
+      </div>
+
+      <h2>My Images</h2>
+      <div style={{ display: "flex", flexWrap: "wrap", marginTop: "10px" }}>
+        {images.map((img) => (
+          <div key={img.id} onClick={() => navigate(`/image/${img.id}`)} style={{ cursor: "pointer", margin: "10px" }}>
+            <img src={img.image_url} alt="Uploaded" width="150" />
+          </div>
+        ))}
       </div>
     </div>
-  );
-};
 
-// Style for Upload Button
-const uploadButtonStyle = {
-  padding: "10px",
-  fontSize: "16px",
-  marginBottom: "15px",
-  cursor: "pointer",
-  backgroundColor: "#007bff",
-  color: "#fff",
-  border: "none",
-  borderRadius: "5px",
+    
+
+    
+  );
 };
 
 export default Dashboard;

@@ -13,3 +13,13 @@ class UploadedImage(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.image}"
+
+class Album(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    cover_image = models.ForeignKey(UploadedImage, on_delete=models.SET_NULL, null=True, blank=True)
+    images = models.ManyToManyField(UploadedImage, related_name="albums")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Album: {self.name} by {self.user.username}"

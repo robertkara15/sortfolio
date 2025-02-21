@@ -4,6 +4,8 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Upload from "./pages/Upload";
+import AlbumPage from "./pages/AlbumPage";
+import ImageDetail from "./pages/ImageDetail";
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/upload" element={<Upload />} />
+        <Route path="/album/:albumId" element={<AlbumPage />} /> 
+        <Route path="/image/:imageId" element={<ImageDetail />} />
       </Routes>
     </Router>
   );
