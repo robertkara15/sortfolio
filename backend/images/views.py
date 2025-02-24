@@ -182,12 +182,79 @@ class AlbumImagesView(APIView):
         image_data = [
             {
                 "id": img.id,
-                "image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{img.image}",  # ✅ Ensure Full URL
+                "image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{img.image}",
                 "tags": img.tags,
             }
             for img in album_images
         ]
-        return Response(image_data, status=status.HTTP_200_OK)
+
+        cover_image_url = None
+        if album.cover_image:
+            cover_image_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{album.cover_image.image}"
+
+        return Response({
+            "album_name": album.name,
+            "cover_image": cover_image_url,
+            "images": image_data
+        }, status=200)
+
+    def post(self, request, album_id):
+        """ ✅ Allow adding images to an album """
+        album = get_object_or_404(Album, id=album_id, user=request.user)
+        image_ids = request.data.get("image_ids", [])
+
+        if not image_ids:
+            return Response({"error": "No image IDs provided"}, status=400)
+
+        images = UploadedImage.objects.filter(id__in=image_ids, user=request.user)
+
+        if not images.exists():
+            return Response({"error": "No valid images found"}, status=400)
+
+        album.images.add(*images)  # ✅ Add images to album
+        return Response({"message": "Images added to album successfully"}, status=200)
+
+    def delete(self, request, album_id):
+        """ ✅ Allow removing an image from an album """
+        album = get_object_or_404(Album, id=album_id, user=request.user)
+        image_id = request.data.get("image_id")
+
+        if not image_id:
+            return Response({"error": "Image ID is required"}, status=400)
+
+        image = get_object_or_404(UploadedImage, id=image_id, user=request.user)
+
+        if image not in album.images.all():
+            return Response({"error": "Image not found in album"}, status=400)
+
+        album.images.remove(image)  # ✅ Remove the image from the album
+        return Response({"message": "Image removed from album successfully"}, status=200)
+
+
+
+
+    
+class SetAlbumCoverView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, album_id):
+        album = get_object_or_404(Album, id=album_id, user=request.user)
+        image_id = request.data.get("image_id")
+
+        if not image_id:
+            return Response({"error": "Image ID is required"}, status=400)
+
+        image = get_object_or_404(UploadedImage, id=image_id, user=request.user)
+
+        if image not in album.images.all():
+            return Response({"error": "Image not in album"}, status=400)
+
+        album.cover_image = image
+        album.save()
+
+        return Response({"message": "Cover image updated successfully"}, status=200)
+
+
 
     def post(self, request, album_id):
         album = get_object_or_404(Album, id=album_id, user=request.user)
@@ -228,3 +295,11 @@ class ImageDetailView(APIView):
             "uploaded_at": image.uploaded_at.strftime("%Y-%m-%d %H:%M:%S"),
         }
         return Response(data, status=status.HTTP_200_OK)
+    
+class DeleteAlbumView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, album_id):
+        album = get_object_or_404(Album, id=album_id, user=request.user)
+        album.delete()
+        return Response({"message": "Album deleted successfully"}, status=status.HTTP_204_NO_CONTENT)

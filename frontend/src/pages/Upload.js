@@ -18,7 +18,7 @@ function Upload() {
     backgroundColor: "#f9f9f9",
   };
 
-  // ✅ Handles image drop WITHOUT uploading images
+  // Handles image drop WITHOUT uploading images
   const onDrop = useCallback(async (acceptedFiles) => {
     const fileObjects = acceptedFiles.map((file) => ({
       file,
@@ -28,7 +28,7 @@ function Upload() {
 
     setImages((prev) => [...prev, ...fileObjects]);
 
-    // ✅ Fetch AI tags immediately without uploading the image
+    // Fetch AI tags immediately without uploading the image
     for (const fileObj of fileObjects) {
       const tags = await getAiTagsForImage(fileObj.file);
       if (tags.length > 0) {
@@ -46,7 +46,7 @@ function Upload() {
     multiple: true,
   });
 
-  // ✅ Fetch AI-generated tags WITHOUT uploading the image
+  // Fetch AI-generated tags WITHOUT uploading the image
   const getAiTagsForImage = async (imageFile) => {
     const token = localStorage.getItem("token");
     if (!token) return [];
@@ -84,7 +84,7 @@ function Upload() {
     setCustomTags((prev) => ({ ...prev, [imageName]: tags }));
   };
 
-  // ✅ Uploads the image ONLY when "Finalize Upload" is clicked
+  // Uploads the image ONLY when "Finalize Upload" is clicked
   const handleFinalizeUpload = async (imageObj, index) => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -92,10 +92,10 @@ function Upload() {
       return;
     }
 
-    // ✅ Collect ONLY the selected AI and custom tags
+    // Collect ONLY the selected AI and custom tags
     const finalTags = [
-      ...(selectedTags[imageObj.file.name] || []),  // ✅ Only selected AI tags
-      ...(customTags[imageObj.file.name] || [])     // ✅ Custom tags added manually
+      ...(selectedTags[imageObj.file.name] || []),
+      ...(customTags[imageObj.file.name] || [])
     ];
 
     if (finalTags.length === 0) {
@@ -107,7 +107,7 @@ function Upload() {
     formData.append("image", imageObj.file);
 
     try {
-      // ✅ Upload the image first
+      // Upload the image first
       const uploadResponse = await axios.post("http://127.0.0.1:8000/images/upload/", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -117,7 +117,7 @@ function Upload() {
 
       const uploadedImageId = uploadResponse.data.data.id;
 
-      // ✅ Send ONLY selected tags
+      // Send ONLY selected tags
       await axios.post("http://127.0.0.1:8000/images/finalize-upload/", {
         image_id: uploadedImageId,
         tags: finalTags,
@@ -125,10 +125,10 @@ function Upload() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // ✅ Remove uploaded image from the list
+      // Remove uploaded image from the list
       setImages((prevImages) => prevImages.filter((_, i) => i !== index));
 
-      // ✅ Redirect to dashboard when the last image is uploaded
+      // Redirect to dashboard when the last image is uploaded
       if (images.length === 1) {
         navigate("/dashboard");
       }
@@ -138,7 +138,7 @@ function Upload() {
     }
   };
 
-  // ✅ Quick Upload ALL Images with AI Tags (ignores user-selected tags)
+  // Quick Upload ALL Images with AI Tags (ignores user-selected tags)
   const handleQuickUploadAll = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -151,7 +151,7 @@ function Upload() {
       formData.append("image", imageObj.file);
 
       try {
-        // ✅ Upload the image first
+        // Upload the image first
         const uploadResponse = await axios.post("http://127.0.0.1:8000/images/upload/", formData, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -161,12 +161,12 @@ function Upload() {
 
         const uploadedImageId = uploadResponse.data.data.id;
 
-        // ✅ Use all 5 AI-generated tags
+        // Use all 5 AI-generated tags
         const finalTags = aiTags[imageObj.file.name] || [];
 
         await axios.post("http://127.0.0.1:8000/images/finalize-upload/", {
           image_id: uploadedImageId,
-          tags: finalTags,  // ✅ Sends ALL AI tags without user selection
+          tags: finalTags,
         }, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -176,10 +176,10 @@ function Upload() {
       }
     }
 
-    // ✅ Remove all images from the list after upload
+    // Remove all images from the list after upload
     setImages([]);
 
-    // ✅ Redirect to dashboard after uploading all images
+    // Redirect to dashboard after uploading all images
     navigate("/dashboard");
   };
 
@@ -187,7 +187,7 @@ function Upload() {
     <div>
       <h2>Upload Images</h2>
 
-      {/* ✅ Quick Upload All Button */}
+      {/* Quick Upload All Button */}
       {images.length > 0 && (
         <button 
           onClick={handleQuickUploadAll} 

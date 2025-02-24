@@ -5,9 +5,10 @@ import { useParams, useNavigate } from "react-router-dom";
 const AlbumPage = () => {
   const { albumId } = useParams();
   const [albumImages, setAlbumImages] = useState([]);
+  const [coverImage, setCover] = useState(null);
   const [allImages, setAllImages] = useState([]);
-  const [addMode, setAddMode] = useState(false); // ✅ Toggle for adding images
-  const [removeMode, setRemoveMode] = useState(false); // ✅ Toggle for removing images
+  const [addMode, setAddMode] = useState(false); 
+  const [removeMode, setRemoveMode] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,7 +19,7 @@ const AlbumPage = () => {
           console.error("No token found");
           return;
         }
-
+  
         const [albumResponse, allImagesResponse] = await Promise.all([
           axios.get(`http://127.0.0.1:8000/images/album/${albumId}/`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -27,22 +28,31 @@ const AlbumPage = () => {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
-
-        setAlbumImages(albumResponse.data);
-        setAllImages(allImagesResponse.data);
+  
+        console.log("📸 Album Images Fetched:", albumResponse.data.images);
+        console.log("📂 All User Images:", allImagesResponse.data);
+  
+        setAlbumImages(albumResponse.data.images);
+        setAllImages(allImagesResponse.data); 
       } catch (error) {
         console.error("Failed to fetch album data:", error);
+        setAlbumImages([]);
+        setAllImages([]); 
       }
     };
-
+  
     fetchAlbumData();
   }, [albumId]);
+
+  
+
+  
+  
 
   const addToAlbum = async (imageId) => {
     try {
       const token = localStorage.getItem("token");
 
-      // Prevent adding duplicates
       if (albumImages.some((img) => img.id === imageId)) {
         alert("This image is already in the album.");
         return;
@@ -54,11 +64,22 @@ const AlbumPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setAlbumImages([...albumImages, allImages.find((img) => img.id === imageId)]);
+      // ✅ Instead of manually adding the image, fetch the updated album images
+      const response = await axios.get(`http://127.0.0.1:8000/images/album/${albumId}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("Updated Album Images:", response.data.images); // Debugging log
+      setAlbumImages(response.data.images); // ✅ Update state with latest images
+
     } catch (error) {
       console.error("Failed to add image to album:", error);
     }
-  };
+};
+
+
+
+  
 
   const removeFromAlbum = async (imageId) => {
     try {
@@ -75,12 +96,20 @@ const AlbumPage = () => {
     }
   };
 
+  
+
   return (
     <div>
       <h2>Album</h2>
       
+      {coverImage && (
+        <div>
+          <h3>Cover Image</h3>
+          <img src={coverImage} alt="Cover" width="200" />
+        </div>
+      )}
 
-      {/* ✅ Toggle Buttons for Modes */}
+    {/* ✅ Toggle Buttons for Modes */}
       <button onClick={() => { setAddMode(!addMode); setRemoveMode(false); }}>
         {addMode ? "Exit Add Mode" : "Add Images to Album"}
       </button>
@@ -88,34 +117,32 @@ const AlbumPage = () => {
         {removeMode ? "Exit Remove Mode" : "Remove Images from Album"}
       </button>
 
-      {/* ✅ Album Images (Clickable) */}
-      <h3>Album Images</h3>
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
-        {albumImages.length === 0 ? (
-          <p>No images in this album.</p>
-        ) : (
-          albumImages.map((img) => (
-            <div 
-              key={img.id} 
-              style={{ 
-                margin: "10px", 
-                cursor: "pointer", 
-                padding: "10px", 
-                border: removeMode ? "2px solid red" : "1px solid #ddd" 
-              }}
-              onClick={() => removeMode ? removeFromAlbum(img.id) : navigate(`/image/${img.id}`)} // ✅ Click removes if in Remove Mode
-            >
-              <img 
-                src={img.image_url || "default.jpg"}  // ✅ Ensure valid image URL
-                alt="Album Content" 
-                width="150" 
-                onError={(e) => e.target.src = "default.jpg"} // ✅ Fallback for broken images
-              />
-              {removeMode && <p style={{ color: "red" }}>Click to Remove</p>}
-            </div>
-          ))
-        )}
-      </div>
+    {/* ✅ Album Images (Clickable) */}
+    <h3>Album Images</h3>
+    <div style={{ display: "flex", flexWrap: "wrap" }}>
+    {albumImages && albumImages.length > 0 ? (
+        albumImages.map((img) => (
+        <div 
+            key={img.id} 
+            style={{ margin: "10px", cursor: "pointer", padding: "10px", border: removeMode ? "2px solid red" : "1px solid #ddd" }}
+            onClick={() => removeMode ? removeFromAlbum(img.id) : navigate(`/image/${img.id}`)}
+        >
+            <img 
+            src={img.image_url || "default.jpg"}  
+            alt="Album Content" 
+            width="150" 
+            onError={(e) => e.target.src = "default.jpg"} 
+            />
+            <button onClick={() => setCover(img.id)}>Set as Cover</button>
+            {removeMode && <p style={{ color: "red" }}>Click to Remove</p>}
+        </div>
+        ))
+    ) : (
+        <p>No images in this album.</p>
+    )}
+    </div>
+
+
 
       {/* ✅ Add Images Mode */}
       {addMode && (

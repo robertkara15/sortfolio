@@ -3,10 +3,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const [images, setImages] = useState([]);
   const [albums, setAlbums] = useState([]);
-  const [newAlbumName, setNewAlbumName] = useState("");
-  const [selectedCoverImage, setSelectedCoverImage] = useState(null);
+  const [images, setImages] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,17 +16,17 @@ const Dashboard = () => {
           return;
         }
 
-        const [imageResponse, albumResponse] = await Promise.all([
-          axios.get("http://127.0.0.1:8000/images/my-images/", {
+        const [albumsResponse, imagesResponse] = await Promise.all([
+          axios.get("http://127.0.0.1:8000/images/albums/", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://127.0.0.1:8000/images/albums/", {
+          axios.get("http://127.0.0.1:8000/images/my-images/", {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
 
-        setImages(imageResponse.data);
-        setAlbums(albumResponse.data);
+        setAlbums(albumsResponse.data);
+        setImages(imagesResponse.data);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
@@ -37,58 +35,58 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
-  const createAlbum = async () => {
+  const createNewAlbum = async () => {
+    const albumName = prompt("Enter album name:");
+    if (!albumName) return;
+
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        console.error("No token found");
-        return;
-      }
 
       const response = await axios.post(
         "http://127.0.0.1:8000/images/create-album/",
-        { name: newAlbumName, cover_image_id: selectedCoverImage },
+        { name: albumName, cover_image: null }, // Cover image can be assigned later
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setAlbums([...albums, { id: response.data.album_id, name: newAlbumName }]);
-      setNewAlbumName("");
-      setSelectedCoverImage(null);
+      alert("Album created successfully!");
+      navigate(`/album/${response.data.album_id}`);
     } catch (error) {
       console.error("Failed to create album:", error);
     }
   };
 
+  
+
   return (
     <div>
       <button 
-        onClick={() => navigate("/upload")} 
+        onClick={createNewAlbum} 
         style={{
           padding: "10px",
           fontSize: "16px",
           marginBottom: "15px",
           cursor: "pointer",
-          backgroundColor: "#007bff",
+          backgroundColor: "#28a745",
           color: "#fff",
           border: "none",
           borderRadius: "5px",
         }}
       >
-        Upload New Images
+        Create New Album
       </button>
-      
-      <div style={{ display: "flex", flexWrap: "wrap", marginTop: "10px" }}>
+
+      <div>
+      <h2>My Albums</h2>
+
+      <div style={{ display: "flex", flexWrap: "wrap" }}>
         {albums.map((album) => (
-          <div 
-            key={album.id} 
-            onClick={() => navigate(`/album/${album.id}`)}
-            style={{ cursor: "pointer", padding: "10px", border: "1px solid #ddd" }}
-          >
-            <img src={album.cover_image_url || "default.jpg"} alt="Cover" width="100" />
+          <div key={album.id} onClick={() => navigate(`/album/${album.id}`)} style={{ cursor: "pointer", margin: "10px" }}>
             <p>{album.name}</p>
+            <img src={album.cover_image || "default.jpg"} alt="Album Cover" width="150" />
           </div>
         ))}
       </div>
+    </div>
 
       <h2>My Images</h2>
       <div style={{ display: "flex", flexWrap: "wrap", marginTop: "10px" }}>
@@ -99,10 +97,6 @@ const Dashboard = () => {
         ))}
       </div>
     </div>
-
-    
-
-    
   );
 };
 
