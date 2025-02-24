@@ -249,25 +249,34 @@ class SetAlbumCoverView(APIView):
         album = get_object_or_404(Album, id=album_id, user=request.user)
         image_id = request.data.get("image_id")
 
-        # ✅ Debugging logs
-        print("🔍 Received image_id:", image_id)
-        print("🔍 Album images:", [img.id for img in album.images.all()])
+        # ✅ Debugging logs to check the data
+        print(f"🔍 Received album_id: {album_id}, image_id: {image_id}")
+        print(f"📸 Album contains images: {[img.id for img in album.images.all()]}")
 
         if not image_id:
             return Response({"error": "Image ID is required"}, status=400)
 
-        image = get_object_or_404(UploadedImage, id=image_id, user=request.user)
+        try:
+            image = UploadedImage.objects.get(id=image_id, user=request.user)
+        except UploadedImage.DoesNotExist:
+            return Response({"error": "Image not found"}, status=404)
 
         if image not in album.images.all():
-            return Response({"error": "Image not in album"}, status=400)
+            return Response({"error": "Image is not in the album"}, status=400)
 
         album.cover_image = image
         album.save()
+
+        print(f"✅ Cover image updated to: {album.cover_image.image}")
 
         return Response({
             "message": "Cover image updated successfully",
             "cover_image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{album.cover_image.image}"
         }, status=200)
+
+
+
+
 
 
     

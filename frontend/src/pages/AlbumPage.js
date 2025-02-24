@@ -96,11 +96,68 @@ const AlbumPage = () => {
     }
   };
 
+  const handleSetCover = async (imageId, event) => {
+    if (event) event.stopPropagation();  // Prevent accidental navigation
+
+    try {
+        const token = localStorage.getItem("token");
+
+        console.log("📡 Sending Request to Set Cover for Image ID:", imageId); // Debugging log
+
+        const response = await axios.post(
+            `http://127.0.0.1:8000/images/album/${albumId}/set-cover/`, // ✅ Ensure correct URL
+            { image_id: imageId }, // ✅ Ensure payload matches backend
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        console.log("✅ Cover Image Updated Successfully:", response.data);
+
+        if (response.data.cover_image_url) {
+            setCover(response.data.cover_image_url);
+        } else {
+            console.warn("⚠️ Cover image URL missing in response!");
+        }
+
+        alert("Cover image updated successfully.");
+
+        // ✅ Redirect to the dashboard after updating the cover
+        navigate("/dashboard");
+
+    } catch (error) {
+        console.error("❌ Failed to set cover image:", error.response ? error.response.data : error);
+        alert(`Failed to set cover image. Error: ${error.response ? JSON.stringify(error.response.data) : error}`);
+    }
+};
+
+
+const handleDeleteAlbum = async () => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this album?");
+    if (!confirmDelete) return;
+
+    try {
+        const token = localStorage.getItem("token");
+
+        await axios.delete(`http://127.0.0.1:8000/images/delete-album/${albumId}/`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        alert("Album deleted successfully.");
+        navigate("/dashboard"); // ✅ Redirect to the dashboard after deletion
+
+    } catch (error) {
+        console.error("❌ Failed to delete album:", error);
+        alert("Failed to delete album.");
+    }
+};
+
+
+
+
   
 
   return (
     <div>
-      <h2>Album</h2>
+      <h2>My Albums</h2>
       
       {coverImage && (
         <div>
@@ -108,6 +165,21 @@ const AlbumPage = () => {
           <img src={coverImage} alt="Cover" width="200" />
         </div>
       )}
+
+    <button 
+        onClick={handleDeleteAlbum}
+        style={{
+            backgroundColor: "red",
+            color: "white",
+            padding: "10px",
+            border: "none",
+            cursor: "pointer",
+            marginTop: "10px"
+        }}
+    >
+        Delete Album
+    </button>
+
 
     {/* ✅ Toggle Buttons for Modes */}
       <button onClick={() => { setAddMode(!addMode); setRemoveMode(false); }}>
@@ -133,7 +205,7 @@ const AlbumPage = () => {
             width="150" 
             onError={(e) => e.target.src = "default.jpg"} 
             />
-            <button onClick={() => setCover(img.id)}>Set as Cover</button>
+            <button onClick={(event) => handleSetCover(img.id, event)}>Set as Cover</button>
             {removeMode && <p style={{ color: "red" }}>Click to Remove</p>}
         </div>
         ))

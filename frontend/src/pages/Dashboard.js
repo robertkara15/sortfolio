@@ -59,6 +59,11 @@ const Dashboard = () => {
 
   return (
     <div>
+      
+
+      <div>
+      <h2>My Albums</h2>
+
       <button 
         onClick={createNewAlbum} 
         style={{
@@ -75,14 +80,17 @@ const Dashboard = () => {
         Create New Album
       </button>
 
-      <div>
-      <h2>My Albums</h2>
-
       <div style={{ display: "flex", flexWrap: "wrap" }}>
         {albums.map((album) => (
           <div key={album.id} onClick={() => navigate(`/album/${album.id}`)} style={{ cursor: "pointer", margin: "10px" }}>
             <p>{album.name}</p>
-            <img src={album.cover_image || "default.jpg"} alt="Album Cover" width="150" />
+            <img 
+              src={album.cover_image_url ? album.cover_image_url : "default.jpg"} 
+              alt="Album Cover" 
+              width="150"
+              onError={(e) => e.target.src = "default.jpg"} 
+            />
+
           </div>
         ))}
       </div>
