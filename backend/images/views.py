@@ -168,8 +168,16 @@ class UserAlbumsView(APIView):
 
     def get(self, request):
         albums = Album.objects.filter(user=request.user)
-        data = [{"id": album.id, "name": album.name, "cover_image_url": album.cover_image.image if album.cover_image else None} for album in albums]
+        data = [
+            {
+                "id": album.id,
+                "name": album.name,
+                "cover_image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{album.cover_image.image}" if album.cover_image else None
+            } 
+            for album in albums
+        ]
         return Response(data, status=status.HTTP_200_OK)
+
 
 
 class AlbumImagesView(APIView):
@@ -241,6 +249,10 @@ class SetAlbumCoverView(APIView):
         album = get_object_or_404(Album, id=album_id, user=request.user)
         image_id = request.data.get("image_id")
 
+        # ✅ Debugging logs
+        print("🔍 Received image_id:", image_id)
+        print("🔍 Album images:", [img.id for img in album.images.all()])
+
         if not image_id:
             return Response({"error": "Image ID is required"}, status=400)
 
@@ -252,36 +264,12 @@ class SetAlbumCoverView(APIView):
         album.cover_image = image
         album.save()
 
-        return Response({"message": "Cover image updated successfully"}, status=200)
+        return Response({
+            "message": "Cover image updated successfully",
+            "cover_image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{album.cover_image.image}"
+        }, status=200)
 
 
-
-    def post(self, request, album_id):
-        album = get_object_or_404(Album, id=album_id, user=request.user)
-        image_ids = request.data.get("image_ids", [])
-
-        # Get images that are already in the album
-        existing_images = set(album.images.values_list('id', flat=True))
-
-        # Filter only images that are NOT in the album
-        new_images = UploadedImage.objects.filter(id__in=image_ids, user=request.user).exclude(id__in=existing_images)
-
-        if not new_images:
-            return Response({"message": "No new images added. Some images are already in the album."}, status=400)
-
-        album.images.add(*new_images)
-        return Response({"message": "Images added to album"}, status=200)
-
-    def delete(self, request, album_id):
-        album = get_object_or_404(Album, id=album_id, user=request.user)
-        image_id = request.data.get("image_id")
-
-        if image_id:
-            image = get_object_or_404(UploadedImage, id=image_id, user=request.user)
-            album.images.remove(image)
-            return Response({"message": "Image removed from album"}, status=status.HTTP_200_OK)
-        
-        return Response({"error": "Image ID required"}, status=status.HTTP_400_BAD_REQUEST)
     
 class ImageDetailView(APIView):
     permission_classes = [IsAuthenticated]
