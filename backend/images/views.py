@@ -11,6 +11,7 @@ from .models import UploadedImage, Album
 from .serializers import UploadedImageSerializer
 from .aws_rekognition import analyze_image 
 from rest_framework import status
+from django.db import models
 
 # AWS S3 client
 s3_client = boto3.client(
@@ -179,32 +180,53 @@ class UserAlbumsView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-
 class AlbumImagesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, album_id):
         album = get_object_or_404(Album, id=album_id, user=request.user)
-        album_images = album.images.all()
 
-        image_data = [
-            {
-                "id": img.id,
-                "image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{img.image}",
-                "tags": img.tags,
-            }
-            for img in album_images
+        print(f"\n--- DEBUG: Fetching Images for Album '{album.name}' ---")
+        print(f"Album Tags: {album.tags}")
+
+        all_images = UploadedImage.objects.filter(user=request.user)
+        print("\n--- ALL USER IMAGES BEFORE FILTERING ---")
+        for img in all_images:
+            print(f"Image ID: {img.id}, Tags: {img.tags}")
+
+        # ✅ Find matching images based on tags
+        matching_images = [
+            img for img in all_images if any(tag in album.tags for tag in img.tags)
         ]
 
-        cover_image_url = None
-        if album.cover_image:
-            cover_image_url = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{album.cover_image.image}"
+        # ✅ Ensure these images are actually stored in the album
+        album.images.set(matching_images)  # <--- Stores the images in album.images
+
+        print("\n--- MATCHED IMAGES ---")
+        if matching_images:
+            for img in matching_images:
+                print(f"✅ MATCH: Image ID: {img.id}, Tags: {img.tags}")
+        else:
+            print("⚠️ No images matched the album tags!")
 
         return Response({
             "album_name": album.name,
-            "cover_image": cover_image_url,
-            "images": image_data
+            "tags": album.tags,
+            "images": [
+                {
+                    "id": img.id,
+                    "image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{img.image}",
+                    "tags": img.tags,
+                }
+                for img in matching_images
+            ]
         }, status=200)
+
+
+
+
+
+
 
     def post(self, request, album_id):
         """ ✅ Allow adding images to an album """
@@ -220,6 +242,10 @@ class AlbumImagesView(APIView):
             return Response({"error": "No valid images found"}, status=400)
 
         album.images.add(*images)  # ✅ Add images to album
+
+        # ✅ Debugging Log
+        print(f"✅ Successfully added images to album '{album.name}': {[img.id for img in images]}")
+
         return Response({"message": "Images added to album successfully"}, status=200)
 
     def delete(self, request, album_id):
@@ -239,9 +265,18 @@ class AlbumImagesView(APIView):
         return Response({"message": "Image removed from album successfully"}, status=200)
 
 
+class UserTagsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_images = UploadedImage.objects.filter(user=request.user)
+
+        # Extract unique tags from the user's images
+        unique_tags = sorted(set(tag for image in user_images for tag in image.tags))
+
+        return Response({"tags": unique_tags}, status=200)
 
 
-    
 class SetAlbumCoverView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -249,7 +284,6 @@ class SetAlbumCoverView(APIView):
         album = get_object_or_404(Album, id=album_id, user=request.user)
         image_id = request.data.get("image_id")
 
-        # ✅ Debugging logs to check the data
         print(f"🔍 Received album_id: {album_id}, image_id: {image_id}")
         print(f"📸 Album contains images: {[img.id for img in album.images.all()]}")
 
@@ -279,6 +313,7 @@ class SetAlbumCoverView(APIView):
 
 
 
+
     
 class ImageDetailView(APIView):
     permission_classes = [IsAuthenticated]
@@ -300,3 +335,87 @@ class DeleteAlbumView(APIView):
         album = get_object_or_404(Album, id=album_id, user=request.user)
         album.delete()
         return Response({"message": "Album deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    
+import logging
+
+logger = logging.getLogger(__name__)
+
+class AddTagsToAlbumView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, album_id):
+        album = get_object_or_404(Album, id=album_id, user=request.user)
+        tags_to_add = request.data.get("tags", [])
+
+        if not isinstance(tags_to_add, list):
+            return Response({"error": "Tags should be a list"}, status=400)
+
+        # ✅ Update album's tags
+        album.tags = list(set(album.tags + tags_to_add))
+        album.save()
+
+        # ✅ Find all images that match the updated album tags
+        matching_images = UploadedImage.objects.filter(user=request.user).filter(
+            models.Q(tags__overlap=album.tags)
+        )
+
+        # ✅ Store these images in album.images
+        album.images.set(matching_images)
+
+        print(f"✅ Tags after saving album: {album.tags}")
+        print(f"✅ Successfully linked {len(matching_images)} images to album '{album.name}'")
+
+        return Response({
+            "message": "Tags added successfully",
+            "tags": album.tags,
+            "images": [
+                {"id": img.id, "image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{img.image}", "tags": img.tags}
+                for img in matching_images
+            ]
+        }, status=200)
+
+
+
+class RemoveTagsFromAlbumView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, album_id):
+        album = get_object_or_404(Album, id=album_id, user=request.user)
+        tags_to_remove = request.data.get("tags", [])
+
+        if not isinstance(tags_to_remove, list):
+            return Response({"error": "Tags should be a list"}, status=400)
+
+        # ✅ Flatten nested lists if needed
+        tags_to_remove = [tag for sublist in tags_to_remove for tag in (sublist if isinstance(sublist, list) else [sublist])]
+
+        # ✅ Remove only the selected tags from the album's tags
+        album.tags = [tag for tag in album.tags if tag not in tags_to_remove]
+        album.save()
+
+        print(f"🗑️ Tags removed: {tags_to_remove}")
+        print(f"✅ Updated Album Tags: {album.tags}")
+
+        # ✅ Find images that still match at least one album tag
+        updated_images = UploadedImage.objects.filter(user=request.user).filter(
+            models.Q(tags__overlap=album.tags)
+        )
+
+        # ✅ Ensure only images that no longer match album tags are removed
+        images_to_remove = album.images.exclude(id__in=updated_images.values_list('id', flat=True))
+        album.images.remove(*images_to_remove)
+
+        print(f"✅ Remaining Images in Album: {[img.id for img in updated_images]}")
+
+        return Response({
+            "message": "Tags removed successfully",
+            "tags": album.tags,
+            "images": [
+                {
+                    "id": img.id, 
+                    "image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{img.image}", 
+                    "tags": img.tags
+                }
+                for img in updated_images
+            ]
+        }, status=200)

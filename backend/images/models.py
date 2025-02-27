@@ -20,6 +20,7 @@ class Album(models.Model):
     cover_image = models.ForeignKey(UploadedImage, null=True, blank=True, on_delete=models.SET_NULL, related_name="cover_for_album")
     images = models.ManyToManyField(UploadedImage, related_name="albums")
     created_at = models.DateTimeField(auto_now_add=True)
+    tags = models.JSONField(default=list)
 
     def __str__(self):
         return f"Album: {self.name} by {self.user.username}"

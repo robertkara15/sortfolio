@@ -64,6 +64,9 @@ const Dashboard = () => {
       <div>
       <h2>My Albums</h2>
 
+      <button onClick={() => navigate("/upload")}>Upload Image</button>
+
+
       <button 
         onClick={createNewAlbum} 
         style={{

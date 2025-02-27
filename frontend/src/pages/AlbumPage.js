@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 const AlbumPage = () => {
@@ -9,44 +9,52 @@ const AlbumPage = () => {
   const [allImages, setAllImages] = useState([]);
   const [addMode, setAddMode] = useState(false); 
   const [removeMode, setRemoveMode] = useState(false);
+  const [albumTags, setAlbumTags] = useState([]);
+  const [allTags, setAllTags] = useState([]);
+  const [addTagMode, setAddTagMode] = useState(false);
+  const [removeTagMode, setRemoveTagMode] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchAlbumData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          console.error("No token found");
-          return;
-        }
-  
-        const [albumResponse, allImagesResponse] = await Promise.all([
-          axios.get(`http://127.0.0.1:8000/images/album/${albumId}/`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get("http://127.0.0.1:8000/images/my-images/", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
-  
-        console.log("📸 Album Images Fetched:", albumResponse.data.images);
-        console.log("📂 All User Images:", allImagesResponse.data);
-  
-        setAlbumImages(albumResponse.data.images);
-        setAllImages(allImagesResponse.data); 
-      } catch (error) {
-        console.error("Failed to fetch album data:", error);
-        setAlbumImages([]);
-        setAllImages([]); 
+
+
+
+  const fetchAlbumData = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found");
+        return;
       }
-    };
-  
-    fetchAlbumData();
-  }, [albumId]);
 
-  
+      const [albumResponse, allImagesResponse, tagsResponse] = await Promise.all([
+        axios.get(`http://127.0.0.1:8000/images/album/${albumId}/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get("http://127.0.0.1:8000/images/my-images/", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get("http://127.0.0.1:8000/images/user-tags/", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-  
+      setAlbumImages(albumResponse.data.images);
+      setAlbumTags(albumResponse.data.tags || []);
+      setCover(albumResponse.data.cover_image_url);
+      setAllImages(allImagesResponse.data);
+      setAllTags(tagsResponse.data.tags || []);
+
+      console.log("📸 Album Images Fetched:", albumResponse.data.images);
+      console.log("📂 All User Images:", allImagesResponse.data);
+      console.log("🏷️ User Tags:", tagsResponse.data.tags);
+    } catch (error) {
+      console.error("Failed to fetch album data:", error);
+      setAlbumImages([]);
+      setAllImages([]);
+      setAlbumTags([]);
+      setAllTags([]);
+    }
+  }, [albumId]); 
   
 
   const addToAlbum = async (imageId) => {
@@ -150,8 +158,74 @@ const handleDeleteAlbum = async () => {
     }
 };
 
+const [updateTrigger, setUpdateTrigger] = useState(false);
+
+const triggerUpdate = () => setUpdateTrigger(prev => !prev);
+
+const addTagsToAlbum = async (tag) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `http://127.0.0.1:8000/images/album/${albumId}/add-tags/`,
+      { tags: [tag] },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (response.data.tags) {
+      setAlbumTags([...response.data.tags]);  
+    }
+
+    if (response.data.images) {
+      setAlbumImages([...response.data.images]);  
+    }
+
+    console.log("🔄 Updated Album Images: ", response.data.images);
+    console.log("🔄 Updated Album Tags: ", response.data.tags);
+
+    fetchAlbumData(); 
+
+  } catch (error) {
+    console.error("❌ Failed to add tag:", error);
+  }
+};
 
 
+
+
+const removeTagsFromAlbum = async (tag) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `http://127.0.0.1:8000/images/album/${albumId}/remove-tags/`,
+      { tags: [tag] },  
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (response.data.tags) {
+      console.log("✅ Updated Album Tags:", response.data.tags);
+      setAlbumTags([...response.data.tags]);  // ✅ Update album tags
+    }
+
+    if (response.data.images) {
+      console.log("✅ Updated Album Images:", response.data.images);
+      setAlbumImages([...response.data.images]);  // ✅ Update album images
+    }
+
+    fetchAlbumData(); 
+
+  } catch (error) {
+    console.error("❌ Failed to remove tag:", error);
+  }
+};
+
+
+
+
+
+
+useEffect(() => {
+  fetchAlbumData();
+}, [fetchAlbumData, updateTrigger]);
 
   
 
@@ -163,6 +237,45 @@ const handleDeleteAlbum = async () => {
         <div>
           <h3>Cover Image</h3>
           <img src={coverImage} alt="Cover" width="200" />
+        </div>
+      )}
+
+      {/* Album Tags */}
+      <h3>Album Tags</h3>
+      {albumTags.length > 0 ? (
+        albumTags.map((tag) => (
+          <span key={tag} style={{ marginRight: "10px", background: "#ddd", padding: "5px" }}>
+            {tag}
+          </span>
+        ))
+      ) : (
+        <p>No tags in this album.</p>
+      )}
+
+      {/* Tag Management Buttons */}
+      <button onClick={() => setAddTagMode(!addTagMode)}>Add Tags</button>
+      <button onClick={() => setRemoveTagMode(!removeTagMode)}>Remove Tags</button>
+
+      {/* Add Tags Mode */}
+      {addTagMode && (
+        <div>
+          <h3>Select Tags to Add</h3>
+          {allTags.map((tag) => (
+            !albumTags.includes(tag) && ( // ✅ Prevent duplicate additions
+              <button key={tag} onClick={() => addTagsToAlbum(tag)}>{tag}</button>
+            )
+          ))}
+        </div>
+      )}
+
+
+      {/* Remove Tags Mode */}
+      {removeTagMode && (
+        <div>
+          <h3>Select Tags to Remove</h3>
+          {albumTags.map((tag) => (
+            <button key={tag} onClick={() => removeTagsFromAlbum([tag])}>{tag}</button>
+          ))}
         </div>
       )}
 
