@@ -253,19 +253,23 @@ useEffect(() => {
       )}
 
       {/* Tag Management Buttons */}
-      <button onClick={() => setAddTagMode(!addTagMode)}>Add Tags</button>
-      <button onClick={() => setRemoveTagMode(!removeTagMode)}>Remove Tags</button>
+      <button onClick={() => setAddTagMode(!addTagMode)}>
+          {addTagMode ? "Exit Add Tag Mode" : "Add Tags"}
+      </button>
+      <button onClick={() => setRemoveTagMode(!removeTagMode)}>
+          {removeTagMode ? "Exit Remove Tags Mode" : "Remove Tags"}
+      </button>
 
       {/* Add Tags Mode */}
       {addTagMode && (
-        <div>
-          <h3>Select Tags to Add</h3>
-          {allTags.map((tag) => (
-            !albumTags.includes(tag) && ( // ✅ Prevent duplicate additions
-              <button key={tag} onClick={() => addTagsToAlbum(tag)}>{tag}</button>
-            )
-          ))}
-        </div>
+          <div>
+              <h3>Select Tags to Add</h3>
+              {allTags.map((tag) => (
+                  !albumTags.includes(tag) && ( // ✅ Prevent duplicate additions
+                      <button key={tag} onClick={() => addTagsToAlbum(tag)}>{tag}</button>
+                  )
+              ))}
+          </div>
       )}
 
 

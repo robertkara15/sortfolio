@@ -419,3 +419,33 @@ class RemoveTagsFromAlbumView(APIView):
                 for img in updated_images
             ]
         }, status=200)
+
+class DeleteImageView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, image_id):
+        image = get_object_or_404(UploadedImage, id=image_id, user=request.user)
+
+        # ✅ Remove image from all albums
+        albums = Album.objects.filter(images=image)
+        for album in albums:
+            album.images.remove(image)
+
+            # If the deleted image was the cover, set cover to None
+            if album.cover_image == image:
+                album.cover_image = None
+                album.save()
+
+        # ✅ Delete the image from S3 (optional, but recommended)
+        try:
+            s3_client.delete_object(
+                Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+                Key=image.image  # This is the S3 key
+            )
+        except Exception as e:
+            print(f"❌ Failed to delete image from S3: {e}")
+
+        # ✅ Delete the image from the database
+        image.delete()
+
+        return Response({"message": "Image deleted successfully"}, status=status.HTTP_204_NO_CONTENT)

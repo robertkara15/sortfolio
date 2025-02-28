@@ -7,6 +7,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import UserSerializer
 from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+from images.models import UploadedImage, Album
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -44,3 +46,20 @@ class ProfileView(APIView):
             "username": user.username,
             "email": user.email,
         })
+    
+class DeleteAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+
+        # ✅ Delete all user-related images
+        UploadedImage.objects.filter(user=user).delete()
+
+        # ✅ Delete all user-related albums
+        Album.objects.filter(user=user).delete()
+
+        # ✅ Delete the user account
+        user.delete()
+
+        return Response({"message": "Account deleted successfully"}, status=204)
