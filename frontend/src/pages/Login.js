@@ -50,7 +50,11 @@ function Login() {
       {/* Button to go to Register Page */}
       <p>Don't have an account?</p>
       <button onClick={() => navigate("/register")}>Register</button>
+
+      
     </div>
+
+    
   );
 }
 
