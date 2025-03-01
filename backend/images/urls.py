@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ImageUploadView, UserImagesView, FinalizeImageUploadView, GenerateTagsView, CreateAlbumView, UserAlbumsView, AlbumImagesView, ImageDetailView, DeleteAlbumView, SetAlbumCoverView, AddTagsToAlbumView, RemoveTagsFromAlbumView, UserTagsView, DeleteImageView, ImageDetailView, EditImageTagsView
+from .views import ImageUploadView, UserImagesView, FinalizeImageUploadView, GenerateTagsView, CreateAlbumView, UserAlbumsView, AlbumImagesView, ImageDetailView, DeleteAlbumView, SetAlbumCoverView, AddTagsToAlbumView, RemoveTagsFromAlbumView, UserTagsView, DeleteImageView, ImageDetailView, EditImageTagsView, AnalyticsView
 
 urlpatterns = [
     path('upload/', ImageUploadView.as_view(), name='image-upload'),
@@ -18,5 +18,6 @@ urlpatterns = [
     path("delete-image/<int:image_id>/", DeleteImageView.as_view(), name="delete-image"),
     path("image/<int:image_id>/", ImageDetailView.as_view(), name="image-detail"),
     path("image/<int:image_id>/edit-tags/", EditImageTagsView.as_view(), name="edit-image-tags"),
+    path("analytics/", AnalyticsView.as_view(), name="analytics"),
 ]
 

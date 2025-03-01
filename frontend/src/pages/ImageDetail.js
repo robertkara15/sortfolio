@@ -5,7 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 const ImageDetail = () => {
   const { imageId } = useParams();
   const [imageData, setImageData] = useState(null);
-  const [newTag, setNewTag] = useState(""); // For adding tags
+  const [newTag, setNewTag] = useState("");
   const navigate = useNavigate();
 
   const fetchImageData = useCallback(async () => {
@@ -73,10 +73,9 @@ const ImageDetail = () => {
 
       setImageData((prev) => ({ ...prev, tags: response.data.tags }));
 
-      // ✅ Refresh albums after adding a tag
       await fetchAlbums();
 
-      setNewTag(""); // Clear input field
+      setNewTag("");
     } catch (error) {
       console.error("Failed to add tag:", error);
       alert("Failed to add tag.");
@@ -102,7 +101,6 @@ const ImageDetail = () => {
 
       setImageData((prev) => ({ ...prev, tags: response.data.tags }));
 
-      // ✅ Refresh albums after removing a tag
       await fetchAlbums();
     } catch (error) {
       console.error("Failed to remove tag:", error);

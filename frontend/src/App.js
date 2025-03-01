@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import Upload from "./pages/Upload";
 import AlbumPage from "./pages/AlbumPage";
 import ImageDetail from "./pages/ImageDetail";
+import Analytics from "./pages/Analytics";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/upload" element={<Upload />} />
         <Route path="/album/:albumId" element={<AlbumPage />} /> 
         <Route path="/image/:imageId" element={<ImageDetail />} />
+        <Route path="/analytics" element={<Analytics />} />
       </Routes>
     </Router>
   );

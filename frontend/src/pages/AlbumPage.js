@@ -13,6 +13,7 @@ const AlbumPage = () => {
   const [allTags, setAllTags] = useState([]);
   const [addTagMode, setAddTagMode] = useState(false);
   const [removeTagMode, setRemoveTagMode] = useState(false);
+  const [updateTrigger] = useState(false);
   const navigate = useNavigate();
 
 
@@ -72,13 +73,13 @@ const AlbumPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // ✅ Instead of manually adding the image, fetch the updated album images
+      // Instead of manually adding the image, fetch the updated album images
       const response = await axios.get(`http://127.0.0.1:8000/images/album/${albumId}/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("Updated Album Images:", response.data.images); // Debugging log
-      setAlbumImages(response.data.images); // ✅ Update state with latest images
+      console.log("Updated Album Images:", response.data.images);
+      setAlbumImages(response.data.images);
 
     } catch (error) {
       console.error("Failed to add image to album:", error);
@@ -105,20 +106,20 @@ const AlbumPage = () => {
   };
 
   const handleSetCover = async (imageId, event) => {
-    if (event) event.stopPropagation();  // Prevent accidental navigation
+    if (event) event.stopPropagation(); 
 
     try {
         const token = localStorage.getItem("token");
 
-        console.log("📡 Sending Request to Set Cover for Image ID:", imageId); // Debugging log
+        console.log("📡 Sending Request to Set Cover for Image ID:", imageId);
 
         const response = await axios.post(
-            `http://127.0.0.1:8000/images/album/${albumId}/set-cover/`, // ✅ Ensure correct URL
-            { image_id: imageId }, // ✅ Ensure payload matches backend
+            `http://127.0.0.1:8000/images/album/${albumId}/set-cover/`,
+            { image_id: imageId },
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        console.log("✅ Cover Image Updated Successfully:", response.data);
+        console.log("Cover Image Updated Successfully:", response.data);
 
         if (response.data.cover_image_url) {
             setCover(response.data.cover_image_url);
@@ -128,11 +129,10 @@ const AlbumPage = () => {
 
         alert("Cover image updated successfully.");
 
-        // ✅ Redirect to the dashboard after updating the cover
         navigate("/dashboard");
 
     } catch (error) {
-        console.error("❌ Failed to set cover image:", error.response ? error.response.data : error);
+        console.error("Failed to set cover image:", error.response ? error.response.data : error);
         alert(`Failed to set cover image. Error: ${error.response ? JSON.stringify(error.response.data) : error}`);
     }
 };
@@ -150,17 +150,16 @@ const handleDeleteAlbum = async () => {
         });
 
         alert("Album deleted successfully.");
-        navigate("/dashboard"); // ✅ Redirect to the dashboard after deletion
+        navigate("/dashboard"); 
 
     } catch (error) {
-        console.error("❌ Failed to delete album:", error);
+        console.error("Failed to delete album:", error);
         alert("Failed to delete album.");
     }
 };
 
-const [updateTrigger, setUpdateTrigger] = useState(false);
 
-const triggerUpdate = () => setUpdateTrigger(prev => !prev);
+
 
 const addTagsToAlbum = async (tag) => {
   try {
@@ -185,7 +184,7 @@ const addTagsToAlbum = async (tag) => {
     fetchAlbumData(); 
 
   } catch (error) {
-    console.error("❌ Failed to add tag:", error);
+    console.error("Failed to add tag:", error);
   }
 };
 
@@ -202,19 +201,19 @@ const removeTagsFromAlbum = async (tag) => {
     );
 
     if (response.data.tags) {
-      console.log("✅ Updated Album Tags:", response.data.tags);
-      setAlbumTags([...response.data.tags]);  // ✅ Update album tags
+      console.log("Updated Album Tags:", response.data.tags);
+      setAlbumTags([...response.data.tags]); 
     }
 
     if (response.data.images) {
-      console.log("✅ Updated Album Images:", response.data.images);
-      setAlbumImages([...response.data.images]);  // ✅ Update album images
+      console.log("Updated Album Images:", response.data.images);
+      setAlbumImages([...response.data.images]);
     }
 
     fetchAlbumData(); 
 
   } catch (error) {
-    console.error("❌ Failed to remove tag:", error);
+    console.error("Failed to remove tag:", error);
   }
 };
 
@@ -265,7 +264,7 @@ useEffect(() => {
           <div>
               <h3>Select Tags to Add</h3>
               {allTags.map((tag) => (
-                  !albumTags.includes(tag) && ( // ✅ Prevent duplicate additions
+                  !albumTags.includes(tag) && (
                       <button key={tag} onClick={() => addTagsToAlbum(tag)}>{tag}</button>
                   )
               ))}
@@ -298,7 +297,7 @@ useEffect(() => {
     </button>
 
 
-    {/* ✅ Toggle Buttons for Modes */}
+    {/*Toggle Buttons for Modes */}
       <button onClick={() => { setAddMode(!addMode); setRemoveMode(false); }}>
         {addMode ? "Exit Add Mode" : "Add Images to Album"}
       </button>
@@ -306,7 +305,7 @@ useEffect(() => {
         {removeMode ? "Exit Remove Mode" : "Remove Images from Album"}
       </button>
 
-    {/* ✅ Album Images (Clickable) */}
+    {/*Album Images (Clickable) */}
     <h3>Album Images</h3>
     <div style={{ display: "flex", flexWrap: "wrap" }}>
     {albumImages && albumImages.length > 0 ? (
@@ -333,7 +332,7 @@ useEffect(() => {
 
 
 
-      {/* ✅ Add Images Mode */}
+      {/*Add Images Mode */}
       {addMode && (
         <>
           <h3>Add Images to Album</h3>
@@ -342,13 +341,13 @@ useEffect(() => {
               <div 
                 key={img.id} 
                 style={{ margin: "10px", cursor: "pointer", padding: "10px", border: "1px solid green" }}
-                onClick={() => addToAlbum(img.id)} // ✅ Clicking an image adds it to the album
+                onClick={() => addToAlbum(img.id)}
               >
                 <img 
-                  src={img.image_url || "default.jpg"}  // ✅ Ensure valid image URL
+                  src={img.image_url || "default.jpg"}
                   alt="All Images" 
                   width="150" 
-                  onError={(e) => e.target.src = "default.jpg"} // ✅ Fallback for broken images
+                  onError={(e) => e.target.src = "default.jpg"}
                 />
                 <p style={{ color: "green" }}>Click to Add</p>
               </div>

@@ -45,7 +45,7 @@ const Dashboard = () => {
 
       const response = await axios.post(
         "http://127.0.0.1:8000/images/create-album/",
-        { name: albumName, cover_image: null }, // Cover image can be assigned later
+        { name: albumName, cover_image: null },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -63,7 +63,7 @@ const Dashboard = () => {
     try {
         const token = localStorage.getItem("token");
 
-        // ✅ Disable interactions to prevent multiple deletions at once
+        // Disable interactions to prevent multiple deletions at once
         setImages((prevImages) => prevImages.map(img => 
             img.id === imageId ? { ...img, deleting: true } : img
         ));
@@ -72,11 +72,11 @@ const Dashboard = () => {
             headers: { Authorization: `Bearer ${token}` },
         });
 
-        // ✅ Remove from state after deletion
+        // Remove from state after deletion
         setImages((prevImages) => prevImages.filter(img => img.id !== imageId));
 
     } catch (error) {
-        console.error("❌ Failed to delete image:", error);
+        console.error("Failed to delete image:", error);
         alert("Failed to delete image.");
     }
   };
@@ -93,11 +93,11 @@ const Dashboard = () => {
         });
 
         alert("Your account has been deleted.");
-        localStorage.removeItem("token"); // ✅ Clear token
-        navigate("/login"); // ✅ Redirect to register page after deletion
+        localStorage.removeItem("token");
+        navigate("/login"); 
 
     } catch (error) {
-        console.error("❌ Failed to delete account:", error);
+        console.error("Failed to delete account:", error);
         alert("Failed to delete account.");
     }
 };
@@ -155,6 +155,9 @@ const Dashboard = () => {
       </div>
     </div>
 
+    <button onClick={() => navigate("/analytics")}>View Analytics</button>
+
+
       <h2>My Images</h2>
       <div style={{ display: "flex", flexWrap: "wrap", marginTop: "10px" }}>
         {images.map((img) => (
@@ -177,7 +180,7 @@ const Dashboard = () => {
             {removeImageMode && (
                 <button 
                     onClick={(event) => {
-                        event.stopPropagation();  // ✅ Prevent conflict with image click
+                        event.stopPropagation(); 
                         deleteImage(img.id);
                     }}
                     style={{

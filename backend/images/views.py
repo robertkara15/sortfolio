@@ -12,6 +12,8 @@ from .serializers import UploadedImageSerializer
 from .aws_rekognition import analyze_image 
 from rest_framework import status
 from django.db import models
+from collections import Counter
+
 
 # AWS S3 client
 s3_client = boto3.client(
@@ -54,7 +56,7 @@ class ImageUploadView(APIView):
             )
 
             ai_tags = sorted(rekognition_response["Labels"], key=lambda x: x["Confidence"], reverse=True)[:5]
-            top_tags = [label["Name"] for label in ai_tags]  # Extract top 5 tag names
+            top_tags = [label["Name"] for label in ai_tags]
 
             # Save image in DB without tags (tags will be added when user confirms)
             uploaded_image = UploadedImage.objects.create(
@@ -68,7 +70,7 @@ class ImageUploadView(APIView):
                 "data": {
                     "id": uploaded_image.id,
                     "image_url": f"https://{s3_bucket}.s3.amazonaws.com/{s3_key}",
-                    "tags": top_tags  # Send only the top 5 AI tags for selection
+                    "tags": top_tags
                 },
             }, status=201)
 
@@ -133,12 +135,12 @@ class GenerateTagsView(APIView):
 
             # Use AWS Rekognition to analyze image (without uploading)
             rekognition_response = rekognition_client.detect_labels(
-                Image={"Bytes": image_file.read()},  # Analyze raw image bytes
+                Image={"Bytes": image_file.read()},
                 MaxLabels=10
             )
 
             ai_tags = sorted(rekognition_response["Labels"], key=lambda x: x["Confidence"], reverse=True)[:5]
-            top_tags = [label["Name"] for label in ai_tags]  # Extract top 5 tag names
+            top_tags = [label["Name"] for label in ai_tags] 
 
             return Response({
                 "message": "Tags generated successfully",
@@ -194,18 +196,18 @@ class AlbumImagesView(APIView):
         for img in all_images:
             print(f"Image ID: {img.id}, Tags: {img.tags}")
 
-        # ✅ Find matching images based on tags
+        # Find matching images based on tags
         matching_images = [
             img for img in all_images if any(tag in album.tags for tag in img.tags)
         ]
 
-        # ✅ Ensure these images are actually stored in the album
-        album.images.set(matching_images)  # <--- Stores the images in album.images
+        # Ensure these images are actually stored in the album
+        album.images.set(matching_images)
 
         print("\n--- MATCHED IMAGES ---")
         if matching_images:
             for img in matching_images:
-                print(f"✅ MATCH: Image ID: {img.id}, Tags: {img.tags}")
+                print(f"MATCH: Image ID: {img.id}, Tags: {img.tags}")
         else:
             print("⚠️ No images matched the album tags!")
 
@@ -229,7 +231,7 @@ class AlbumImagesView(APIView):
 
 
     def post(self, request, album_id):
-        """ ✅ Allow adding images to an album """
+        """ Allow adding images to an album """
         album = get_object_or_404(Album, id=album_id, user=request.user)
         image_ids = request.data.get("image_ids", [])
 
@@ -241,15 +243,14 @@ class AlbumImagesView(APIView):
         if not images.exists():
             return Response({"error": "No valid images found"}, status=400)
 
-        album.images.add(*images)  # ✅ Add images to album
+        album.images.add(*images)
 
-        # ✅ Debugging Log
-        print(f"✅ Successfully added images to album '{album.name}': {[img.id for img in images]}")
+        print(f"Successfully added images to album '{album.name}': {[img.id for img in images]}")
 
         return Response({"message": "Images added to album successfully"}, status=200)
 
     def delete(self, request, album_id):
-        """ ✅ Allow removing an image from an album """
+        """Allow removing an image from an album """
         album = get_object_or_404(Album, id=album_id, user=request.user)
         image_id = request.data.get("image_id")
 
@@ -261,7 +262,7 @@ class AlbumImagesView(APIView):
         if image not in album.images.all():
             return Response({"error": "Image not found in album"}, status=400)
 
-        album.images.remove(image)  # ✅ Remove the image from the album
+        album.images.remove(image)
         return Response({"message": "Image removed from album successfully"}, status=200)
 
 
@@ -284,8 +285,8 @@ class SetAlbumCoverView(APIView):
         album = get_object_or_404(Album, id=album_id, user=request.user)
         image_id = request.data.get("image_id")
 
-        print(f"🔍 Received album_id: {album_id}, image_id: {image_id}")
-        print(f"📸 Album contains images: {[img.id for img in album.images.all()]}")
+        print(f"Received album_id: {album_id}, image_id: {image_id}")
+        print(f"Album contains images: {[img.id for img in album.images.all()]}")
 
         if not image_id:
             return Response({"error": "Image ID is required"}, status=400)
@@ -301,7 +302,7 @@ class SetAlbumCoverView(APIView):
         album.cover_image = image
         album.save()
 
-        print(f"✅ Cover image updated to: {album.cover_image.image}")
+        print(f"Cover image updated to: {album.cover_image.image}")
 
         return Response({
             "message": "Cover image updated successfully",
@@ -350,20 +351,20 @@ class AddTagsToAlbumView(APIView):
         if not isinstance(tags_to_add, list):
             return Response({"error": "Tags should be a list"}, status=400)
 
-        # ✅ Update album's tags
+        # Update album's tags
         album.tags = list(set(album.tags + tags_to_add))
         album.save()
 
-        # ✅ Find all images that match the updated album tags
+        # Find all images that match the updated album tags
         matching_images = UploadedImage.objects.filter(user=request.user).filter(
             models.Q(tags__overlap=album.tags)
         )
 
-        # ✅ Store these images in album.images
+        # Store these images in album.images
         album.images.set(matching_images)
 
-        print(f"✅ Tags after saving album: {album.tags}")
-        print(f"✅ Successfully linked {len(matching_images)} images to album '{album.name}'")
+        print(f"Tags after saving album: {album.tags}")
+        print(f"Successfully linked {len(matching_images)} images to album '{album.name}'")
 
         return Response({
             "message": "Tags added successfully",
@@ -386,26 +387,26 @@ class RemoveTagsFromAlbumView(APIView):
         if not isinstance(tags_to_remove, list):
             return Response({"error": "Tags should be a list"}, status=400)
 
-        # ✅ Flatten nested lists if needed
+        # Flatten nested lists if needed
         tags_to_remove = [tag for sublist in tags_to_remove for tag in (sublist if isinstance(sublist, list) else [sublist])]
 
-        # ✅ Remove only the selected tags from the album's tags
+        # Remove only the selected tags from the album's tags
         album.tags = [tag for tag in album.tags if tag not in tags_to_remove]
         album.save()
 
-        print(f"🗑️ Tags removed: {tags_to_remove}")
-        print(f"✅ Updated Album Tags: {album.tags}")
+        print(f"Tags removed: {tags_to_remove}")
+        print(f"Updated Album Tags: {album.tags}")
 
-        # ✅ Find images that still match at least one album tag
+        # Find images that still match at least one album tag
         updated_images = UploadedImage.objects.filter(user=request.user).filter(
             models.Q(tags__overlap=album.tags)
         )
 
-        # ✅ Ensure only images that no longer match album tags are removed
+        # Ensure only images that no longer match album tags are removed
         images_to_remove = album.images.exclude(id__in=updated_images.values_list('id', flat=True))
         album.images.remove(*images_to_remove)
 
-        print(f"✅ Remaining Images in Album: {[img.id for img in updated_images]}")
+        print(f"Remaining Images in Album: {[img.id for img in updated_images]}")
 
         return Response({
             "message": "Tags removed successfully",
@@ -426,7 +427,7 @@ class DeleteImageView(APIView):
     def delete(self, request, image_id):
         image = get_object_or_404(UploadedImage, id=image_id, user=request.user)
 
-        # ✅ Remove image from all albums
+        # Remove image from all albums
         albums = Album.objects.filter(images=image)
         for album in albums:
             album.images.remove(image)
@@ -436,16 +437,16 @@ class DeleteImageView(APIView):
                 album.cover_image = None
                 album.save()
 
-        # ✅ Delete the image from S3 (optional, but recommended)
+        # Delete the image from S3 (optional, but recommended)
         try:
             s3_client.delete_object(
                 Bucket=settings.AWS_STORAGE_BUCKET_NAME,
                 Key=image.image  # This is the S3 key
             )
         except Exception as e:
-            print(f"❌ Failed to delete image from S3: {e}")
+            print(f"Failed to delete image from S3: {e}")
 
-        # ✅ Delete the image from the database
+        # Delete the image from the database
         image.delete()
 
         return Response({"message": "Image deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
@@ -467,3 +468,30 @@ class EditImageTagsView(APIView):
         image.save()
 
         return Response({"message": "Tags updated successfully", "tags": image.tags}, status=200)
+
+
+
+class AnalyticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_images = UploadedImage.objects.filter(user=request.user)
+
+        # Total images count
+        total_images = user_images.count()
+
+        # Count occurrences of all tags
+        all_tags = [tag for image in user_images for tag in image.tags]
+        tag_counts = Counter(all_tags)
+
+        # Most common tags (Top 5)
+        top_tags = tag_counts.most_common(5)
+
+        # Tag distribution (for pie chart)
+        tag_distribution = [{"tag": tag, "count": count} for tag, count in tag_counts.items()]
+
+        return Response({
+            "total_images": total_images,
+            "top_tags": top_tags,
+            "tag_distribution": tag_distribution,
+        }, status=200)
