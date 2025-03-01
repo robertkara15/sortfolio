@@ -53,13 +53,13 @@ class DeleteAccountView(APIView):
     def delete(self, request):
         user = request.user
 
-        # ✅ Delete all user-related images
+        # Delete all user-related images
         UploadedImage.objects.filter(user=user).delete()
 
-        # ✅ Delete all user-related albums
+        # Delete all user-related albums
         Album.objects.filter(user=user).delete()
 
-        # ✅ Delete the user account
+        # Delete the user account
         user.delete()
 
         return Response({"message": "Account deleted successfully"}, status=204)

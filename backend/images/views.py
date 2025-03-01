@@ -449,3 +449,21 @@ class DeleteImageView(APIView):
         image.delete()
 
         return Response({"message": "Image deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+class EditImageTagsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, image_id):
+        image = get_object_or_404(UploadedImage, id=image_id, user=request.user)
+        updated_tags = request.data.get("tags", [])
+
+        if not updated_tags:
+            return Response({"error": "An image must have at least one tag."}, status=400)
+
+        # Ensure all tags are capitalized properly
+        formatted_tags = list(set(tag.capitalize() for tag in updated_tags))
+
+        image.tags = formatted_tags
+        image.save()
+
+        return Response({"message": "Tags updated successfully", "tags": image.tags}, status=200)
