@@ -324,10 +324,28 @@ class ImageDetailView(APIView):
         data = {
             "id": image.id,
             "image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{image.image}",
+            "name": image.name if image.name else image.image.split("/")[-1],
             "tags": image.tags,
             "uploaded_at": image.uploaded_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "posted_by": image.user.username,
         }
         return Response(data, status=status.HTTP_200_OK)
+    
+class EditImageNameView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, image_id):
+        image = get_object_or_404(UploadedImage, id=image_id, user=request.user)
+        new_name = request.data.get("name", "").strip()
+
+        if not new_name:
+            return Response({"error": "Image name cannot be empty."}, status=400)
+
+        image.name = new_name
+        image.save()
+
+        return Response({"message": "Image name updated successfully", "name": image.name}, status=200)
+
     
 class DeleteAlbumView(APIView):
     permission_classes = [IsAuthenticated]

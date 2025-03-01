@@ -10,6 +10,8 @@ class UploadedImage(models.Model):
     image = models.CharField(max_length=255)  # Store S3 key instead of local path
     tags = models.JSONField(default=list)  # Store metadata as a list of tags
     uploaded_at = models.DateTimeField(auto_now_add=True)  # Auto timestamp
+    name = models.CharField(max_length=255, blank=True, null=True)  # ✅ Add explicit name field
+    
 
     def __str__(self):
         return f"{self.user.username} - {self.image}"

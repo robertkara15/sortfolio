@@ -26,6 +26,28 @@ const ImageDetail = () => {
     }
   }, [imageId]);
 
+  const handleEditImageName = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        alert("You must be logged in to edit image name.");
+        return;
+    }
+
+    try {
+        await axios.post(
+            `http://127.0.0.1:8000/images/image/${imageId}/edit-name/`,
+            { name: imageData.name },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        alert("Image name updated successfully!");
+        } catch (error) {
+            console.error("Failed to update image name:", error);
+            alert("Failed to update image name.");
+        }
+    };
+
+
   useEffect(() => {
     fetchImageData();
   }, [fetchImageData]);
@@ -114,7 +136,17 @@ const ImageDetail = () => {
     <div>
       <h2>Image Details</h2>
       <img src={imageData.image_url} alt="Uploaded" width="300" />
+      <p><strong>Image Name:</strong> 
+      <input 
+          type="text" 
+          value={imageData.name} 
+          onChange={(e) => setImageData({ ...imageData, name: e.target.value })} 
+      />
+      <button onClick={handleEditImageName}>Save</button>
+      </p>
       <p><strong>Uploaded At:</strong> {imageData.uploaded_at}</p>
+      <p><strong>Posted By:</strong> {imageData.posted_by}</p>
+
 
       {/* Editable Tags */}
       <h3>Tags</h3>
