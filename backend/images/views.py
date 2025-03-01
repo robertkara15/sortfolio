@@ -8,11 +8,17 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.conf import settings
 from .models import UploadedImage, Album
-from .serializers import UploadedImageSerializer
+from .serializers import UploadedImageSerializer, AlbumSerializer, UserSerializer
 from .aws_rekognition import analyze_image 
 from rest_framework import status
 from django.db import models
 from collections import Counter
+from django.contrib.auth.models import User, AnonymousUser
+from rest_framework.permissions import AllowAny
+from rest_framework.generics import ListAPIView
+from django.db.models import Q
+from django.contrib.auth.models import User
+
 
 
 # AWS S3 client
@@ -30,7 +36,6 @@ rekognition_client = boto3.client(
     aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
     region_name=settings.AWS_REGION
 )
-
 
 class ImageUploadView(APIView):
     permission_classes = [IsAuthenticated]
@@ -315,16 +320,17 @@ class SetAlbumCoverView(APIView):
 
 
 
-    
+
 class ImageDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # ✅ Anyone can view images
 
     def get(self, request, image_id):
-        image = get_object_or_404(UploadedImage, id=image_id, user=request.user)
+        image = get_object_or_404(UploadedImage, id=image_id)  # ✅ No user filtering
+
         data = {
             "id": image.id,
             "image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{image.image}",
-            "name": image.name if image.name else image.image.split("/")[-1],
+            "name": image.name,
             "tags": image.tags,
             "uploaded_at": image.uploaded_at.strftime("%Y-%m-%d %H:%M:%S"),
             "posted_by": image.user.username,
@@ -513,3 +519,52 @@ class AnalyticsView(APIView):
             "top_tags": top_tags,
             "tag_distribution": tag_distribution,
         }, status=200)
+
+class PublicUsersView(ListAPIView):
+    """
+    ✅ Get a list of all users (excluding the current user)
+    ✅ Allow searching users by username
+    """
+    permission_classes = [AllowAny]  # Anyone can view this
+    serializer_class = UserSerializer  # Use existing serializer
+
+    def get_queryset(self):
+        search_query = self.request.query_params.get("search", "")
+        return User.objects.filter(
+            Q(username__icontains=search_query)  # Search by username
+        ).exclude(id=self.request.user.id)  # Exclude the current user
+
+
+class PublicImagesView(ListAPIView):
+    serializer_class = UploadedImageSerializer
+    permission_classes = [AllowAny]  # ✅ Make it public
+
+    def get_queryset(self):
+        queryset = UploadedImage.objects.all()
+
+        # ✅ Exclude only if user is authenticated
+        if not isinstance(self.request.user, AnonymousUser):
+            queryset = queryset.exclude(user=self.request.user)
+
+        search_query = self.request.query_params.get("search", "")
+        if search_query:
+            queryset = queryset.filter(tags__icontains=search_query)
+
+        return queryset
+
+class PublicAlbumsView(ListAPIView):
+    serializer_class = AlbumSerializer
+    permission_classes = [AllowAny]  # ✅ Public access
+
+    def get_queryset(self):
+        queryset = Album.objects.all().select_related("user")
+
+        # ✅ Exclude only if user is authenticated
+        if self.request.user and self.request.user.is_authenticated:
+            queryset = queryset.exclude(user=self.request.user)
+
+        search_query = self.request.query_params.get("search", "")
+        if search_query:
+            queryset = queryset.filter(name__icontains=search_query)
+
+        return queryset

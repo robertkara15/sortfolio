@@ -7,6 +7,7 @@ import Upload from "./pages/Upload";
 import AlbumPage from "./pages/AlbumPage";
 import ImageDetail from "./pages/ImageDetail";
 import Analytics from "./pages/Analytics";
+import Explore from "./pages/Explore";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/album/:albumId" element={<AlbumPage />} /> 
         <Route path="/image/:imageId" element={<ImageDetail />} />
         <Route path="/analytics" element={<Analytics />} />
+        <Route path="/explore" element={<Explore />} />
       </Routes>
     </Router>
   );

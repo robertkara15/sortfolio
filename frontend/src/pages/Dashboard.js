@@ -217,7 +217,8 @@ const Dashboard = () => {
         Delete Account
     </button>
 
-  
+    <button onClick={() => navigate("/explore")}>Explore</button>
+
 
 
 
