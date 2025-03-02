@@ -217,6 +217,8 @@ const Dashboard = () => {
         Delete Account
     </button>
 
+    <button onClick={() => navigate("/profile/me")}>Go to My Profile</button> 
+
     <button onClick={() => navigate("/explore")}>Explore</button>
 
 

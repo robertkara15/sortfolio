@@ -67,7 +67,7 @@ class ImageUploadView(APIView):
             uploaded_image = UploadedImage.objects.create(
                 user=request.user,
                 image=s3_key,
-                tags=[]  # No tags yet
+                tags=[]
             )
 
             return Response({
@@ -229,12 +229,6 @@ class AlbumImagesView(APIView):
             ]
         }, status=200)
 
-
-
-
-
-
-
     def post(self, request, album_id):
         """ Allow adding images to an album """
         album = get_object_or_404(Album, id=album_id, user=request.user)
@@ -314,18 +308,11 @@ class SetAlbumCoverView(APIView):
             "cover_image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{album.cover_image.image}"
         }, status=200)
 
-
-
-
-
-
-
-
 class ImageDetailView(APIView):
-    permission_classes = [AllowAny]  # ✅ Anyone can view images
+    permission_classes = [AllowAny] 
 
     def get(self, request, image_id):
-        image = get_object_or_404(UploadedImage, id=image_id)  # ✅ No user filtering
+        image = get_object_or_404(UploadedImage, id=image_id) 
 
         data = {
             "id": image.id,
@@ -521,28 +508,23 @@ class AnalyticsView(APIView):
         }, status=200)
 
 class PublicUsersView(ListAPIView):
-    """
-    ✅ Get a list of all users (excluding the current user)
-    ✅ Allow searching users by username
-    """
-    permission_classes = [AllowAny]  # Anyone can view this
-    serializer_class = UserSerializer  # Use existing serializer
+    permission_classes = [AllowAny]
+    serializer_class = UserSerializer
 
     def get_queryset(self):
         search_query = self.request.query_params.get("search", "")
         return User.objects.filter(
-            Q(username__icontains=search_query)  # Search by username
-        ).exclude(id=self.request.user.id)  # Exclude the current user
+            Q(username__icontains=search_query)
+        ).exclude(id=self.request.user.id)
 
 
 class PublicImagesView(ListAPIView):
     serializer_class = UploadedImageSerializer
-    permission_classes = [AllowAny]  # ✅ Make it public
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         queryset = UploadedImage.objects.all()
 
-        # ✅ Exclude only if user is authenticated
         if not isinstance(self.request.user, AnonymousUser):
             queryset = queryset.exclude(user=self.request.user)
 
@@ -554,12 +536,11 @@ class PublicImagesView(ListAPIView):
 
 class PublicAlbumsView(ListAPIView):
     serializer_class = AlbumSerializer
-    permission_classes = [AllowAny]  # ✅ Public access
+    permission_classes = [AllowAny] 
 
     def get_queryset(self):
         queryset = Album.objects.all().select_related("user")
 
-        # ✅ Exclude only if user is authenticated
         if self.request.user and self.request.user.is_authenticated:
             queryset = queryset.exclude(user=self.request.user)
 

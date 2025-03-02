@@ -10,7 +10,7 @@ const ImageDetail = () => {
   const [isOwner, setIsOwner] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ Fetch image data first
+  // Fetch image data first
   useEffect(() => {
     const fetchImageData = async () => {
       try {
@@ -24,12 +24,12 @@ const ImageDetail = () => {
     fetchImageData();
   }, [imageId]);
 
-  // ✅ Fetch the current user after image data is available
+  // Fetch the current user after image data is available
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) return; // Prevents unnecessary request
+        if (!token) return;
 
         const userResponse = await axios.get("http://127.0.0.1:8000/users/me/", {
           headers: { Authorization: `Bearer ${token}` },
@@ -37,7 +37,7 @@ const ImageDetail = () => {
 
         setCurrentUser(userResponse.data);
 
-        // ✅ Only check if `imageData` exists
+        // Only check if `imageData` exists
         if (imageData) {
           setIsOwner(userResponse.data.username === imageData.posted_by);
         }
@@ -47,7 +47,7 @@ const ImageDetail = () => {
     };
 
     fetchCurrentUser();
-  }, [imageData]); // ✅ This runs AFTER imageData is available
+  }, [imageData]);
 
   const handleEditImageName = async () => {
     if (!isOwner) return;
@@ -81,7 +81,7 @@ const ImageDetail = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("📂 Albums refreshed after tag update");
+      console.log("Albums refreshed after tag update");
     } catch (error) {
       console.error("Failed to refresh albums:", error);
     }

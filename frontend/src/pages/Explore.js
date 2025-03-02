@@ -9,7 +9,6 @@ const Explore = () => {
   const [albums, setAlbums] = useState([]);
   const navigate = useNavigate();
 
-  // Fetch explore data
   useEffect(() => {
     const fetchExploreData = async () => {
       try {
@@ -46,22 +45,34 @@ const Explore = () => {
         style={{ padding: "10px", width: "80%", marginBottom: "20px" }}
       />
 
-      {/* Users Section */}
       <h3>Users</h3>
       <div style={{ display: "flex", flexWrap: "wrap" }}>
         {users.map((user) => (
-          <div key={user.id} style={{ margin: "10px", cursor: "pointer" }} onClick={() => navigate(`/profile/${user.id}`)}>
+          <div
+            key={user.id}
+            style={{ margin: "10px", cursor: "pointer" }}
+            onClick={() => {
+              if (!user.id) {
+                console.error("Error: User ID is undefined for user:", user);
+                return;
+              }
+              console.log(`Navigating to profile: ${user.id} (${user.username})`);
+              navigate(`/profile/${user.id}`);
+            }}
+          >
             <p>{user.username}</p>
           </div>
         ))}
       </div>
+
+
 
       {/* Images Section */}
       <h3>Images</h3>
       <div style={{ display: "flex", flexWrap: "wrap" }}>
         {images.map((img) => (
           <div key={img.id} style={{ margin: "10px", position: "relative", cursor: "pointer" }} onClick={() => navigate(`/image/${img.id}`)}>
-            <img src={img.image_url} alt={`Image by ${img.posted_by}`} width="150" />
+            <img src={img.image_url} alt={`${img.posted_by}`} width="150" />
           </div>
         ))}
       </div>

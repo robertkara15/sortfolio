@@ -8,6 +8,7 @@ import AlbumPage from "./pages/AlbumPage";
 import ImageDetail from "./pages/ImageDetail";
 import Analytics from "./pages/Analytics";
 import Explore from "./pages/Explore";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/image/:imageId" element={<ImageDetail />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/explore" element={<Explore />} />
+        <Route path="/profile/:userId" element={<Profile />} />
       </Routes>
     </Router>
   );
