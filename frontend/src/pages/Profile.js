@@ -1,17 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
-  const { userId } = useParams(); // Get userId from URL (could be 'me')
+  const { userId } = useParams();
   const [profileData, setProfileData] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setIsAuthenticated(false);
+      navigate("/login");
+      return;
+    }
+
     const fetchProfileData = async () => {
       try {
         const token = localStorage.getItem("token");

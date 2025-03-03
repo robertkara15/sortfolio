@@ -2,13 +2,23 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Bar, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from "chart.js";
+import { useNavigate } from "react-router-dom";
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const Analytics = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setIsAuthenticated(false);
+      navigate("/login");
+      return;
+    }
+
     const fetchAnalytics = async () => {
     try {
         const token = localStorage.getItem("token");

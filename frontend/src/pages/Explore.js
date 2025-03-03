@@ -7,9 +7,17 @@ const Explore = () => {
   const [users, setUsers] = useState([]);
   const [images, setImages] = useState([]);
   const [albums, setAlbums] = useState([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setIsAuthenticated(false);
+      navigate("/login");
+      return;
+    }
+
     const fetchExploreData = async () => {
       try {
         const usersResponse = await axios.get(

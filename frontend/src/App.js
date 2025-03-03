@@ -9,10 +9,12 @@ import ImageDetail from "./pages/ImageDetail";
 import Analytics from "./pages/Analytics";
 import Explore from "./pages/Explore";
 import Profile from "./pages/Profile";
+import Navbar from "./components/Navbar";
 
 function App() {
   return (
     <Router>
+      <Navbar />
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />  {/* Redirect "/" to Login */}
         <Route path="/register" element={<Register />} />

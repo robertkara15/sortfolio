@@ -6,6 +6,7 @@ const Dashboard = () => {
   const [albums, setAlbums] = useState([]);
   const [images, setImages] = useState([]);
   const [removeImageMode, setRemoveImageMode] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -13,7 +14,8 @@ const Dashboard = () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          console.error("No token found");
+          setIsAuthenticated(false);
+          navigate("/login");
           return;
         }
 
