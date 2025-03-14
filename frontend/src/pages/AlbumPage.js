@@ -6,6 +6,7 @@ const AlbumPage = () => {
   const { albumId } = useParams();
   const [albumImages, setAlbumImages] = useState([]);
   const [coverImage, setCover] = useState(null);
+  const [albumName, setAlbumName] = useState("");
   const [allImages, setAllImages] = useState([]);
   const [addMode, setAddMode] = useState(false); 
   const [removeMode, setRemoveMode] = useState(false);
@@ -14,10 +15,11 @@ const AlbumPage = () => {
   const [addTagMode, setAddTagMode] = useState(false);
   const [removeTagMode, setRemoveTagMode] = useState(false);
   const [updateTrigger] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [albumPrompt, setAlbumPrompt] = useState("");
+  const [newAlbumId, setNewAlbumId] = useState(null);
   const navigate = useNavigate();
-
-
-
 
   const fetchAlbumData = useCallback(async () => {
     try {
@@ -39,15 +41,18 @@ const AlbumPage = () => {
         }),
       ]);
 
+      setAlbumName(albumResponse.data.album_name || "Untitled Album");
       setAlbumImages(albumResponse.data.images);
       setAlbumTags(albumResponse.data.tags || []);
       setCover(albumResponse.data.cover_image_url);
       setAllImages(allImagesResponse.data);
       setAllTags(tagsResponse.data.tags || []);
 
-      console.log("📸 Album Images Fetched:", albumResponse.data.images);
-      console.log("📂 All User Images:", allImagesResponse.data);
-      console.log("🏷️ User Tags:", tagsResponse.data.tags);
+      console.log("Album Name:", albumResponse.data.album_name);
+      console.log("Album Images Fetched:", albumResponse.data.images);
+      console.log("All User Images:", allImagesResponse.data);
+      console.log("User Tags:", tagsResponse.data.tags);
+
     } catch (error) {
       console.error("Failed to fetch album data:", error);
       setAlbumImages([]);
@@ -217,6 +222,61 @@ const removeTagsFromAlbum = async (tag) => {
   }
 };
 
+const handleSearch = async () => {
+  if (!searchQuery) return;
+
+  try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+          "http://127.0.0.1:8000/semantic-search/",
+          { query: searchQuery },
+          { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setSearchResults(response.data.images);
+  } catch (error) {
+      console.error("Search failed:", error);
+  }
+};
+
+const updateAlbumTagsFromPrompt = async () => {
+  if (!albumPrompt) return;
+
+  try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+          `http://127.0.0.1:8000/images/album/${albumId}/update-tags-from-prompt/`,
+          { prompt: albumPrompt },
+          { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert("Album tags updated successfully!");
+      window.location.reload();  // Refresh the page to reflect updated tags
+  } catch (error) {
+      console.error("Failed to update album tags:", error);
+  }
+};
+
+
+const createAlbumFromPrompt = async () => {
+  if (!albumPrompt) return;
+
+  try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+          "http://127.0.0.1:8000/create-album-from-prompt/",
+          { prompt: albumPrompt },
+          { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setNewAlbumId(response.data.album_id);
+      alert(`Album created! You can view it at /album/${response.data.album_id}`);
+  } catch (error) {
+      console.error("Failed to create album:", error);
+  }
+};
+
+
 
 
 
@@ -230,14 +290,22 @@ useEffect(() => {
 
   return (
     <div>
-      <h2>My Albums</h2>
-      
-      {coverImage && (
-        <div>
-          <h3>Cover Image</h3>
-          <img src={coverImage} alt="Cover" width="200" />
-        </div>
-      )}
+      <h1>My Albums</h1>
+
+      <div>
+        <h2>{albumName}</h2>
+      </div>
+
+      <div>
+        <h3>Update Album Tags with AI</h3>
+        <input 
+            type="text" 
+            value={albumPrompt} 
+            onChange={(e) => setAlbumPrompt(e.target.value)} 
+            placeholder="An album consisting of..."
+        />
+        <button onClick={updateAlbumTagsFromPrompt}>Update Album Tags</button>
+    </div>      
 
       {/* Album Tags */}
       <h3>Album Tags</h3>
@@ -329,6 +397,20 @@ useEffect(() => {
         <p>No images in this album.</p>
     )}
     </div>
+
+    {searchResults.length > 0 && (
+    <div>
+        <h3>Search Results</h3>
+        <div style={{ display: "flex", flexWrap: "wrap" }}>
+            {searchResults.map((img) => (
+                <div key={img.id} style={{ margin: "10px" }}>
+                    <img src={img.image_url} alt="Search Result" width="150" />
+                </div>
+            ))}
+        </div>
+    </div>
+    )}
+
 
 
 

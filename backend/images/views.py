@@ -18,8 +18,30 @@ from rest_framework.permissions import AllowAny
 from rest_framework.generics import ListAPIView
 from django.db.models import Q
 from django.contrib.auth.models import User
+import pandas as pd
+import numpy as np
+from sentence_transformers import SentenceTransformer
 
+# Load Sentence-BERT Model
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
+# Path to the CSV file (automatically detected inside the Django app)
+CSV_FILE_PATH = os.path.join(os.path.dirname(__file__), "AmazonRekognitionAllLabels.csv")
+
+# Function to extract labels from the CSV
+def load_rekognition_tags():
+    try:
+        df = pd.read_csv(CSV_FILE_PATH)
+        return df.iloc[:, 0].dropna().unique().tolist()  # Assuming tags are in the first column
+    except Exception as e:
+        print(f"Error loading Rekognition tags: {e}")
+        return []
+
+# Load tags dynamically
+rekognition_tags = load_rekognition_tags()
+
+# Convert Rekognition tags into vector embeddings
+rekognition_embeddings = {tag: model.encode(tag) for tag in rekognition_tags}
 
 # AWS S3 client
 s3_client = boto3.client(
@@ -452,7 +474,7 @@ class DeleteImageView(APIView):
         try:
             s3_client.delete_object(
                 Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-                Key=image.image  # This is the S3 key
+                Key=image.image
             )
         except Exception as e:
             print(f"Failed to delete image from S3: {e}")
@@ -549,3 +571,76 @@ class PublicAlbumsView(ListAPIView):
             queryset = queryset.filter(name__icontains=search_query)
 
         return queryset
+
+
+class UpdateAlbumTagsFromPromptView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, album_id):
+        prompt = request.data.get("prompt", "")
+        if not prompt:
+            return Response({"error": "Prompt is required"}, status=400)
+
+        # Get the album and ensure it belongs to the user
+        album = get_object_or_404(Album, id=album_id, user=request.user)
+
+        # Convert prompt to vector embedding
+        prompt_vector = model.encode(prompt)
+
+        # Cosine similarity function
+        def cosine_similarity(vec1, vec2):
+            return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+
+        # Get all user images and extract tags
+        all_user_images = UploadedImage.objects.filter(user=request.user)
+
+        # Flatten nested lists of tags
+        existing_tags = set(tag for image in all_user_images for tag in image.tags)
+
+        print(f"Available Tags from All User Images: {existing_tags}")
+
+        # Compute similarity between the prompt and Rekognition tags
+        tag_scores = [(tag, cosine_similarity(prompt_vector, emb)) for tag, emb in rekognition_embeddings.items()]
+        tag_scores.sort(key=lambda x: x[1], reverse=True)
+
+        # Determine which tags to include or exclude based on the prompt
+        positive_tags = []
+        negative_tags = []
+
+        for tag, score in tag_scores[:15]:  # Top 15 relevant tags
+            if f"no {tag.lower()}" in prompt.lower() or f"without {tag.lower()}" in prompt.lower():
+                negative_tags.append(tag)
+            else:
+                positive_tags.append(tag)
+
+        print(f"Suggested Tags: {positive_tags}")
+
+        # Keep only tags that exist in the user's images
+        new_album_tags = [tag for tag in positive_tags if tag in existing_tags and tag not in negative_tags]
+
+        print(f"Suggested Tags After Filtering: {new_album_tags}")
+
+        # Ensure we have valid tags
+        if not new_album_tags:
+            print("No valid tags found. Skipping update.")
+            return Response({"error": "No valid tags to update"}, status=400)
+
+
+        # Update album with the new tags
+        album.tags = new_album_tags
+        album.save()
+
+        # Find images that match the new tags and add them to the album
+        matching_images = UploadedImage.objects.filter(user=request.user, tags__overlap=new_album_tags)
+        album.images.set(matching_images)
+
+        print(f"Updated Album Tags: {album.tags}")
+        print(f"Images Added to Album: {[img.id for img in matching_images]}")
+
+        return Response({
+            "prompt": prompt,
+            "updated_tags": new_album_tags,
+            "excluded_tags": negative_tags,
+            "album_id": album.id,
+            "matched_images": UploadedImageSerializer(matching_images, many=True).data,
+        })
