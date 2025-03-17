@@ -210,36 +210,24 @@ class UserAlbumsView(APIView):
 
 
 class AlbumImagesView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, album_id):
-        album = get_object_or_404(Album, id=album_id, user=request.user)
+        album = get_object_or_404(Album, id=album_id)
 
-        print(f"\n--- DEBUG: Fetching Images for Album '{album.name}' ---")
-        print(f"Album Tags: {album.tags}")
+        is_owner = request.user.is_authenticated and request.user == album.user
 
         all_images = UploadedImage.objects.filter(user=request.user)
-        print("\n--- ALL USER IMAGES BEFORE FILTERING ---")
-        for img in all_images:
-            print(f"Image ID: {img.id}, Tags: {img.tags}")
 
-        # Find matching images based on tags
         matching_images = [
             img for img in all_images if any(tag in album.tags for tag in img.tags)
         ]
-
-        # Ensure these images are actually stored in the album
         album.images.set(matching_images)
 
-        print("\n--- MATCHED IMAGES ---")
-        if matching_images:
-            for img in matching_images:
-                print(f"MATCH: Image ID: {img.id}, Tags: {img.tags}")
-        else:
-            print("⚠️ No images matched the album tags!")
-
         return Response({
+            "id": album.id,
             "album_name": album.name,
+            "owner_username": album.user.username,
             "tags": album.tags,
             "images": [
                 {

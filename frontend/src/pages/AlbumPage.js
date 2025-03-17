@@ -15,10 +15,11 @@ const AlbumPage = () => {
   const [addTagMode, setAddTagMode] = useState(false);
   const [removeTagMode, setRemoveTagMode] = useState(false);
   const [updateTrigger] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
   const [albumPrompt, setAlbumPrompt] = useState("");
-  const [newAlbumId, setNewAlbumId] = useState(null);
+  const [isOwner, setIsOwner] = useState(false);
+  const [albumOwner, setAlbumOwner] = useState("");
+  const [coverMode, setCoverMode] = useState(false);
+  const [selectedCover, setSelectedCover] = useState(null);
   const navigate = useNavigate();
 
   const fetchAlbumData = useCallback(async () => {
@@ -29,7 +30,9 @@ const AlbumPage = () => {
         return;
       }
 
-      const [albumResponse, allImagesResponse, tagsResponse] = await Promise.all([
+      const headers = { Authorization: `Bearer ${token}` };
+
+      const [albumResponse, allImagesResponse, tagsResponse, userResponse] = await Promise.all([
         axios.get(`http://127.0.0.1:8000/images/album/${albumId}/`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -39,7 +42,14 @@ const AlbumPage = () => {
         axios.get("http://127.0.0.1:8000/images/user-tags/", {
           headers: { Authorization: `Bearer ${token}` },
         }),
+        axios.get("http://127.0.0.1:8000/users/me/", { headers }),
       ]);
+
+      const fetchedAlbumOwner = albumResponse.data.owner_username;
+      const currentUsername = userResponse.data.username;
+
+      console.log("Current User:", currentUsername);
+      console.log("Album Owner:", fetchedAlbumOwner);
 
       setAlbumName(albumResponse.data.album_name || "Untitled Album");
       setAlbumImages(albumResponse.data.images);
@@ -47,11 +57,10 @@ const AlbumPage = () => {
       setCover(albumResponse.data.cover_image_url);
       setAllImages(allImagesResponse.data);
       setAllTags(tagsResponse.data.tags || []);
+      setAlbumOwner(albumResponse.data.owner_username);
 
-      console.log("Album Name:", albumResponse.data.album_name);
-      console.log("Album Images Fetched:", albumResponse.data.images);
-      console.log("All User Images:", allImagesResponse.data);
-      console.log("User Tags:", tagsResponse.data.tags);
+      const isAlbumOwner = currentUsername === fetchedAlbumOwner;
+      setIsOwner(isAlbumOwner);
 
     } catch (error) {
       console.error("Failed to fetch album data:", error);
@@ -91,10 +100,6 @@ const AlbumPage = () => {
     }
 };
 
-
-
-  
-
   const removeFromAlbum = async (imageId) => {
     try {
       const token = localStorage.getItem("token");
@@ -110,37 +115,30 @@ const AlbumPage = () => {
     }
   };
 
-  const handleSetCover = async (imageId, event) => {
-    if (event) event.stopPropagation(); 
+  const handleSetCover = async () => {
+    if (!selectedCover) {
+      alert("Please select an image as the cover.");
+      return;
+    }
 
     try {
-        const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `http://127.0.0.1:8000/images/album/${albumId}/set-cover/`,
+        { image_id: selectedCover },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-        console.log("📡 Sending Request to Set Cover for Image ID:", imageId);
+      setCover(response.data.cover_image_url);
+      setCoverMode(false); // Exit cover selection mode
+      setSelectedCover(null); // Clear selection
 
-        const response = await axios.post(
-            `http://127.0.0.1:8000/images/album/${albumId}/set-cover/`,
-            { image_id: imageId },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        console.log("Cover Image Updated Successfully:", response.data);
-
-        if (response.data.cover_image_url) {
-            setCover(response.data.cover_image_url);
-        } else {
-            console.warn("⚠️ Cover image URL missing in response!");
-        }
-
-        alert("Cover image updated successfully.");
-
-        navigate("/dashboard");
-
+      alert("Cover image updated successfully!");
     } catch (error) {
-        console.error("Failed to set cover image:", error.response ? error.response.data : error);
-        alert(`Failed to set cover image. Error: ${error.response ? JSON.stringify(error.response.data) : error}`);
+      console.error("Failed to set cover image:", error);
+      alert("Failed to update cover image.");
     }
-};
+  };
 
 
 const handleDeleteAlbum = async () => {
@@ -222,23 +220,6 @@ const removeTagsFromAlbum = async (tag) => {
   }
 };
 
-const handleSearch = async () => {
-  if (!searchQuery) return;
-
-  try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-          "http://127.0.0.1:8000/semantic-search/",
-          { query: searchQuery },
-          { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setSearchResults(response.data.images);
-  } catch (error) {
-      console.error("Search failed:", error);
-  }
-};
-
 const updateAlbumTagsFromPrompt = async () => {
   if (!albumPrompt) return;
 
@@ -257,31 +238,6 @@ const updateAlbumTagsFromPrompt = async () => {
   }
 };
 
-
-const createAlbumFromPrompt = async () => {
-  if (!albumPrompt) return;
-
-  try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-          "http://127.0.0.1:8000/create-album-from-prompt/",
-          { prompt: albumPrompt },
-          { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setNewAlbumId(response.data.album_id);
-      alert(`Album created! You can view it at /album/${response.data.album_id}`);
-  } catch (error) {
-      console.error("Failed to create album:", error);
-  }
-};
-
-
-
-
-
-
-
 useEffect(() => {
   fetchAlbumData();
 }, [fetchAlbumData, updateTrigger]);
@@ -290,25 +246,11 @@ useEffect(() => {
 
   return (
     <div>
-      <h1>My Albums</h1>
-
       <div>
-        <h2>{albumName}</h2>
+        <h1>{albumName}</h1>
       </div>
 
-      <div>
-        <h3>Update Album Tags with AI</h3>
-        <input 
-            type="text" 
-            value={albumPrompt} 
-            onChange={(e) => setAlbumPrompt(e.target.value)} 
-            placeholder="An album consisting of..."
-        />
-        <button onClick={updateAlbumTagsFromPrompt}>Update Album Tags</button>
-    </div>      
-
-      {/* Album Tags */}
-      <h3>Album Tags</h3>
+      <h2>Album Tags</h2>
       {albumTags.length > 0 ? (
         albumTags.map((tag) => (
           <span key={tag} style={{ marginRight: "10px", background: "#ddd", padding: "5px" }}>
@@ -319,126 +261,165 @@ useEffect(() => {
         <p>No tags in this album.</p>
       )}
 
-      {/* Tag Management Buttons */}
-      <button onClick={() => setAddTagMode(!addTagMode)}>
-          {addTagMode ? "Exit Add Tag Mode" : "Add Tags"}
-      </button>
-      <button onClick={() => setRemoveTagMode(!removeTagMode)}>
-          {removeTagMode ? "Exit Remove Tags Mode" : "Remove Tags"}
-      </button>
-
-      {/* Add Tags Mode */}
-      {addTagMode && (
-          <div>
-              <h3>Select Tags to Add</h3>
-              {allTags.map((tag) => (
-                  !albumTags.includes(tag) && (
-                      <button key={tag} onClick={() => addTagsToAlbum(tag)}>{tag}</button>
-                  )
-              ))}
-          </div>
-      )}
-
-
-      {/* Remove Tags Mode */}
-      {removeTagMode && (
-        <div>
-          <h3>Select Tags to Remove</h3>
-          {albumTags.map((tag) => (
-            <button key={tag} onClick={() => removeTagsFromAlbum([tag])}>{tag}</button>
-          ))}
-        </div>
-      )}
-
-    <button 
-        onClick={handleDeleteAlbum}
-        style={{
-            backgroundColor: "red",
-            color: "white",
-            padding: "10px",
-            border: "none",
-            cursor: "pointer",
-            marginTop: "10px"
-        }}
-    >
-        Delete Album
-    </button>
-
-
-    {/*Toggle Buttons for Modes */}
-      <button onClick={() => { setAddMode(!addMode); setRemoveMode(false); }}>
-        {addMode ? "Exit Add Mode" : "Add Images to Album"}
-      </button>
-      <button onClick={() => { setRemoveMode(!removeMode); setAddMode(false); }}>
-        {removeMode ? "Exit Remove Mode" : "Remove Images from Album"}
-      </button>
-
-    {/*Album Images (Clickable) */}
-    <h3>Album Images</h3>
-    <div style={{ display: "flex", flexWrap: "wrap" }}>
-    {albumImages && albumImages.length > 0 ? (
-        albumImages.map((img) => (
-        <div 
-            key={img.id} 
-            style={{ margin: "10px", cursor: "pointer", padding: "10px", border: removeMode ? "2px solid red" : "1px solid #ddd" }}
-            onClick={() => removeMode ? removeFromAlbum(img.id) : navigate(`/image/${img.id}`)}
-        >
-            <img 
-            src={img.image_url || "default.jpg"}  
-            alt="Album Content" 
-            width="150" 
-            onError={(e) => e.target.src = "default.jpg"} 
-            />
-            <button onClick={(event) => handleSetCover(img.id, event)}>Set as Cover</button>
-            {removeMode && <p style={{ color: "red" }}>Click to Remove</p>}
-        </div>
-        ))
-    ) : (
-        <p>No images in this album.</p>
-    )}
-    </div>
-
-    {searchResults.length > 0 && (
-    <div>
-        <h3>Search Results</h3>
-        <div style={{ display: "flex", flexWrap: "wrap" }}>
-            {searchResults.map((img) => (
-                <div key={img.id} style={{ margin: "10px" }}>
-                    <img src={img.image_url} alt="Search Result" width="150" />
-                </div>
-            ))}
-        </div>
-    </div>
-    )}
-
-
-
-
-      {/*Add Images Mode */}
-      {addMode && (
-        <>
-          <h3>Add Images to Album</h3>
-          <div style={{ display: "flex", flexWrap: "wrap" }}>
-            {allImages.map((img) => (
-              <div 
+      <h2>Album Images</h2>
+      <div style={{ display: "flex", flexWrap: "wrap" }}>
+        {albumImages && albumImages.length > 0 ? (
+            albumImages.map((img) => (
+            <div 
                 key={img.id} 
-                style={{ margin: "10px", cursor: "pointer", padding: "10px", border: "1px solid green" }}
-                onClick={() => addToAlbum(img.id)}
-              >
+                style={{ 
+                  margin: "10px", 
+                  cursor: "pointer", 
+                  padding: "10px", 
+                  border: removeMode
+                  ? "2px solid red"
+                  : coverMode && selectedCover === img.id
+                  ? "2px solid green"
+                  : "1px solid #ddd"
+                }}
+                onClick={() => {
+                  if (removeMode) {
+                    removeFromAlbum(img.id);
+                  } else if (coverMode) {
+                    setSelectedCover(img.id);
+                  } else {
+                    navigate(`/image/${img.id}`);
+                  }
+                }}
+            >
                 <img 
-                  src={img.image_url || "default.jpg"}
-                  alt="All Images" 
-                  width="150" 
-                  onError={(e) => e.target.src = "default.jpg"}
+                src={img.image_url || "default.jpg"}  
+                alt="Album Content" 
+                width="150" 
+                onError={(e) => e.target.src = "default.jpg"} 
                 />
-                <p style={{ color: "green" }}>Click to Add</p>
+                {removeMode && <p style={{ color: "red" }}>Click to Remove</p>}
+            </div>
+            ))
+        ) : (
+            <p>No images in this album.</p>
+        )}
+      </div>
+
+      <div>
+        {isOwner && (
+          <div>
+            <div>
+              <h3>Update Album Tags with AI</h3>
+              <input 
+                  type="text" 
+                  value={albumPrompt} 
+                  onChange={(e) => setAlbumPrompt(e.target.value)} 
+                  placeholder="An album consisting of..."
+              />
+              <button onClick={updateAlbumTagsFromPrompt}>Update Album Tags</button>
+            </div>
+
+            <div>
+              <button onClick={() => setAddTagMode(!addTagMode)}>
+                  {addTagMode ? "Exit Add Tag Mode" : "Add Tags"}
+              </button>
+              <button onClick={() => setRemoveTagMode(!removeTagMode)}>
+                  {removeTagMode ? "Exit Remove Tags Mode" : "Remove Tags"}
+              </button>
+            </div>
+
+            <div>
+            {addTagMode && (
+              <div>
+                  <h3>Select Tags to Add</h3>
+                  {allTags.map((tag) => (
+                      !albumTags.includes(tag) && (
+                          <button key={tag} onClick={() => addTagsToAlbum(tag)}>{tag}</button>
+                      )
+                  ))}
               </div>
-            ))}
+            )}
+            </div>
+
+            <div>
+            {removeTagMode && (
+              <div>
+                <h3>Select Tags to Remove</h3>
+                {albumTags.map((tag) => (
+                  <button key={tag} onClick={() => removeTagsFromAlbum([tag])}>{tag}</button>
+                ))}
+              </div>
+            )}
+            </div>
+
+            <div>
+              <button 
+                onClick={handleDeleteAlbum}
+                style={{
+                    backgroundColor: "red",
+                    color: "white",
+                    padding: "10px",
+                    border: "none",
+                    cursor: "pointer",
+                    marginTop: "10px"
+                }}
+              >
+                Delete Album
+              </button>
+            </div>
+
+            <div>
+              <button onClick={() => { setAddMode(!addMode); setRemoveMode(false); }}>
+                  {addMode ? "Exit Add Mode" : "Add Images to Album"}
+              </button>
+              <button onClick={() => { setRemoveMode(!removeMode); setAddMode(false); }}>
+                  {removeMode ? "Exit Remove Mode" : "Remove Images from Album"}
+              </button>
+            </div>
+
+            <div>
+              {addMode && (
+              <>
+                <h3>Add Images to Album</h3>
+                <div style={{ display: "flex", flexWrap: "wrap" }}>
+                  {allImages.map((img) => (
+                    <div 
+                      key={img.id} 
+                      style={{ margin: "10px", cursor: "pointer", padding: "10px", border: "1px solid green" }}
+                      onClick={() => addToAlbum(img.id)}
+                    >
+                      <img 
+                        src={img.image_url || "default.jpg"}
+                        alt="All Images" 
+                        width="150" 
+                        onError={(e) => e.target.src = "default.jpg"}
+                      />
+                      <p style={{ color: "green" }}>Click to Add</p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+            </div>
+
+            <div>
+              <div>
+                {/* Cover Selection Button */}
+                <button onClick={() => setCoverMode(!coverMode)} style={{ marginTop: "10px" }}>
+                  {coverMode ? "Cancel Cover Selection" : "Set Cover Image"}
+                </button>
+
+                {/* Save Cover Button */}
+                {coverMode && (
+                  <button onClick={handleSetCover} style={{ marginLeft: "10px" }}>
+                    Save Cover
+                  </button>
+                )}
+              </div>
+            </div>
+
+
           </div>
-        </>
-      )}
+        )}
 
       <button onClick={() => navigate(-1)}>Go Back</button>
+      </div>          
     </div>
   );
 };

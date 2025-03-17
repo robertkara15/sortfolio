@@ -73,9 +73,6 @@ const Explore = () => {
         ))}
       </div>
 
-
-
-      {/* Images Section */}
       <h3>Images</h3>
       <div style={{ display: "flex", flexWrap: "wrap" }}>
         {images.map((img) => (
@@ -85,11 +82,14 @@ const Explore = () => {
         ))}
       </div>
 
-      {/* Albums Section */}
       <h3>Albums</h3>
       <div style={{ display: "flex", flexWrap: "wrap" }}>
         {albums.map((album) => (
-          <div key={album.id} style={{ margin: "10px", cursor: "pointer" }} onClick={() => navigate(`/album/${album.id}`)}>
+          <div 
+            key={album.id} 
+            style={{ margin: "10px", cursor: "pointer" }}
+            onClick={() => navigate(`/album/${album.id}`, { state: { ownerUsername: album.owner} })}
+          >
             <p>{album.name} (by {album.owner})</p>
             <img src={album.cover_image_url} alt={`Album cover for ${album.name}`} width="150" />
           </div>

@@ -37,7 +37,6 @@ const ImageDetail = () => {
 
         setCurrentUser(userResponse.data);
 
-        // Only check if `imageData` exists
         if (imageData) {
           setIsOwner(userResponse.data.username === imageData.posted_by);
         }
