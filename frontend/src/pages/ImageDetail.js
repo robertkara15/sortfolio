@@ -6,6 +6,7 @@ const ImageDetail = () => {
   const { imageId } = useParams();
   const [imageData, setImageData] = useState(null);
   const [newTag, setNewTag] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [currentUser, setCurrentUser] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
   const navigate = useNavigate();

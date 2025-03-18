@@ -6,6 +6,7 @@ const Dashboard = () => {
   const [albums, setAlbums] = useState([]);
   const [images, setImages] = useState([]);
   const [removeImageMode, setRemoveImageMode] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [isAuthenticated, setIsAuthenticated] = useState(null);
   const navigate = useNavigate();
 
@@ -36,7 +37,7 @@ const Dashboard = () => {
     };
 
     fetchData();
-  }, []);
+  }, [navigate]);
 
   const createNewAlbum = async () => {
     const albumName = prompt("Enter album name:");

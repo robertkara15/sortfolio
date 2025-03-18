@@ -8,6 +8,7 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 
 const Analytics = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [isAuthenticated, setIsAuthenticated] = useState(null);
   const navigate = useNavigate();
 
@@ -39,7 +40,7 @@ const Analytics = () => {
     };
 
     fetchAnalytics();
-  }, []);
+  }, [navigate]);
 
   if (!analyticsData) return <p>Loading analytics...</p>;
 

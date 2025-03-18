@@ -10,6 +10,7 @@ const Profile = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [isAuthenticated, setIsAuthenticated] = useState(null);
   const [userImages, setUserImages] = useState([]);
   const [userAlbums, setUserAlbums] = useState([]);

@@ -4,8 +4,9 @@ import { useParams, useNavigate } from "react-router-dom";
 
 const AlbumPage = () => {
   const { albumId } = useParams();
+  // eslint-disable-next-line no-unused-vars
+  const [cover, setCover] = useState(null);
   const [albumImages, setAlbumImages] = useState([]);
-  const [coverImage, setCover] = useState(null);
   const [albumName, setAlbumName] = useState("");
   const [allImages, setAllImages] = useState([]);
   const [addMode, setAddMode] = useState(false); 
@@ -225,7 +226,7 @@ const updateAlbumTagsFromPrompt = async () => {
 
   try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(
+      await axios.post(
           `http://127.0.0.1:8000/images/album/${albumId}/update-tags-from-prompt/`,
           { prompt: albumPrompt },
           { headers: { Authorization: `Bearer ${token}` } }
