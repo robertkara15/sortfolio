@@ -21,6 +21,8 @@ from django.contrib.auth.models import User
 import pandas as pd
 import numpy as np
 from sentence_transformers import SentenceTransformer
+from users.models import Profile 
+
 
 # Load Sentence-BERT Model
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -564,15 +566,31 @@ class AnalyticsView(APIView):
             "tag_distribution": tag_distribution,
         }, status=200)
 
-class PublicUsersView(ListAPIView):
+class PublicUsersView(APIView):
     permission_classes = [AllowAny]
-    serializer_class = UserSerializer
 
-    def get_queryset(self):
-        search_query = self.request.query_params.get("search", "")
-        return User.objects.filter(
-            Q(username__icontains=search_query)
-        ).exclude(id=self.request.user.id)
+    def get(self, request):
+        search_query = request.query_params.get("search", "")
+
+        users = User.objects.filter(username__icontains=search_query)
+        users_data = []
+
+        for user in users:
+            profile, _ = Profile.objects.get_or_create(user=user)
+            
+            # Generate full profile picture URL from S3
+            profile_picture_url = (
+                f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{profile.profile_picture}"
+                if profile.profile_picture else None
+            )
+
+            users_data.append({
+                "id": user.id,
+                "username": user.username,
+                "profile_picture": profile_picture_url,
+            })
+
+        return Response(users_data, status=200)
 
 
 class PublicImagesView(ListAPIView):

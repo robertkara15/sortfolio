@@ -53,25 +53,38 @@ const Explore = () => {
         style={{ padding: "10px", width: "80%", marginBottom: "20px" }}
       />
 
-      <h3>Users</h3>
+<h3>Users</h3>
       <div style={{ display: "flex", flexWrap: "wrap" }}>
         {users.map((user) => (
           <div
             key={user.id}
-            style={{ margin: "10px", cursor: "pointer" }}
-            onClick={() => {
-              if (!user.id) {
-                console.error("Error: User ID is undefined for user:", user);
-                return;
-              }
-              console.log(`Navigating to profile: ${user.id} (${user.username})`);
-              navigate(`/profile/${user.id}`);
+            style={{
+              margin: "10px",
+              cursor: "pointer",
+              textAlign: "center",
+              width: "120px", 
             }}
+            onClick={() => navigate(`/profile/${user.id}`)}
           >
-            <p>{user.username}</p>
+            {/* Profile Picture */}
+            <img
+              src={user.profile_picture || "https://via.placeholder.com/100"}
+              alt={`${user.username}'s profile`}
+              width="80"
+              height="80"
+              style={{ 
+                borderRadius: "50%", 
+                objectFit: "cover", 
+                display: "block",
+                margin: "0 auto"
+              }}
+            />
+            {/* Username */}
+            <p style={{ marginTop: "5px", fontWeight: "bold" }}>{user.username}</p>
           </div>
         ))}
       </div>
+
 
       <h3>Images</h3>
       <div style={{ display: "flex", flexWrap: "wrap" }}>
