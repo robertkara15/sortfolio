@@ -157,15 +157,13 @@ const Profile = () => {
     <div>
       <h2>{isOwner ? "My Profile" : `${profileData.username}'s Profile`}</h2>
 
-      <div>
-        <img
-          src={profileData.profile_picture || "https://via.placeholder.com/150"}
-          alt={profileData.username}
-          width="150"
-          height="150"
-          style={{ borderRadius: "50%", objectFit: "cover", marginBottom: "10px" }}
-        />
-      </div>
+      <img
+        src={profileData.profile_picture || "https://via.placeholder.com/150"}
+        alt={profileData.username}
+        width="150"
+        height="150"
+        style={{ borderRadius: "50%", objectFit: "cover", marginBottom: "10px" }}
+      />
 
       {isOwner ? (
         <div>

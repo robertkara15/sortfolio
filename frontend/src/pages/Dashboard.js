@@ -87,15 +87,10 @@ const Dashboard = () => {
 
 
 
-  
-
-  
-
   return (
     <div>
       <div>
-      <h2>My Albums</h2>
-
+        <h2>Dashboard</h2>
       <div>
         <button onClick={() => navigate("/upload")}>Upload Image</button>
         <button onClick={() => setRemoveImageMode(!removeImageMode)}>
@@ -123,7 +118,7 @@ const Dashboard = () => {
       </div>
 
       
-
+      <h2>My Albums</h2>
       <div style={{ display: "flex", flexWrap: "wrap" }}>
           {albums.map((album) => (
             <div key={album.id} onClick={() => navigate(`/album/${album.id}`)} style={{ cursor: "pointer", margin: "10px" }}>
@@ -139,9 +134,6 @@ const Dashboard = () => {
           ))}
         </div>
       </div>
-
-    <button onClick={() => navigate("/analytics")}>View Analytics</button>
-
 
       <h2>My Images</h2>
       <div style={{ display: "flex", flexWrap: "wrap", marginTop: "10px" }}>
