@@ -83,29 +83,7 @@ const Dashboard = () => {
     }
   };
 
-  const deleteAccount = async () => {
-    const confirmDelete = window.confirm("Are you sure you want to delete your account? This action cannot be undone.");
-    if (!confirmDelete) return;
-
-    try {
-        const token = localStorage.getItem("token");
-
-        await axios.delete("http://127.0.0.1:8000/users/delete-account/", {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
-        alert("Your account has been deleted.");
-        localStorage.removeItem("token");
-        navigate("/login"); 
-
-    } catch (error) {
-        console.error("Failed to delete account:", error);
-        alert("Failed to delete account.");
-    }
-};
   
-
-
 
 
 
@@ -118,44 +96,49 @@ const Dashboard = () => {
       <div>
       <h2>My Albums</h2>
 
-      <button onClick={() => navigate("/upload")}>Upload Image</button>
+      <div>
+        <button onClick={() => navigate("/upload")}>Upload Image</button>
+        <button onClick={() => setRemoveImageMode(!removeImageMode)}>
+          {removeImageMode ? "Exit Remove Mode" : "Remove Images"}
+        </button>
+      </div>
 
-      <button onClick={() => setRemoveImageMode(!removeImageMode)}>
-        {removeImageMode ? "Exit Remove Mode" : "Remove Images"}
-      </button>
+      <div>
+        <button 
+          onClick={createNewAlbum} 
+          style={{
+            padding: "10px",
+            fontSize: "16px",
+            marginTop: "15px",
+            marginBottom: "15px",
+            cursor: "pointer",
+            backgroundColor: "#28a745",
+            color: "#fff",
+            border: "none",
+            borderRadius: "5px",
+          }}
+        >
+          Create New Album
+        </button>
+      </div>
 
-
-      <button 
-        onClick={createNewAlbum} 
-        style={{
-          padding: "10px",
-          fontSize: "16px",
-          marginBottom: "15px",
-          cursor: "pointer",
-          backgroundColor: "#28a745",
-          color: "#fff",
-          border: "none",
-          borderRadius: "5px",
-        }}
-      >
-        Create New Album
-      </button>
+      
 
       <div style={{ display: "flex", flexWrap: "wrap" }}>
-        {albums.map((album) => (
-          <div key={album.id} onClick={() => navigate(`/album/${album.id}`)} style={{ cursor: "pointer", margin: "10px" }}>
-            <p>{album.name}</p>
-            <img 
-              src={album.cover_image_url ? album.cover_image_url : "default.jpg"} 
-              alt="Album Cover" 
-              width="150"
-              onError={(e) => e.target.src = "default.jpg"} 
-            />
+          {albums.map((album) => (
+            <div key={album.id} onClick={() => navigate(`/album/${album.id}`)} style={{ cursor: "pointer", margin: "10px" }}>
+              <p>{album.name}</p>
+              <img 
+                src={album.cover_image_url ? album.cover_image_url : "default.jpg"} 
+                alt="Album Cover" 
+                width="150"
+                onError={(e) => e.target.src = "default.jpg"} 
+              />
 
-          </div>
-        ))}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
 
     <button onClick={() => navigate("/analytics")}>View Analytics</button>
 
@@ -203,26 +186,7 @@ const Dashboard = () => {
         ))}
     </div>
 
-    <button 
-    onClick={deleteAccount} 
-    style={{
-        padding: "10px",
-        fontSize: "16px",
-        cursor: "pointer",
-        backgroundColor: "red",
-        color: "white",
-        border: "none",
-        borderRadius: "5px",
-        marginTop: "15px"
-    }}
-    >
-        Delete Account
-    </button>
-
-    <button onClick={() => navigate("/profile/me")}>Go to My Profile</button> 
-
-    <button onClick={() => navigate("/explore")}>Explore</button>
-
+    
 
 
 

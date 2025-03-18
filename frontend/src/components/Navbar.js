@@ -61,6 +61,7 @@ const styles = {
     color: "#fff",
     border: "none",
     padding: "8px 15px",
+    borderRadius: "10px",
     marginLeft: "10px",
     cursor: "pointer",
   },
