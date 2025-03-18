@@ -242,12 +242,11 @@ useEffect(() => {
   fetchAlbumData();
 }, [fetchAlbumData, updateTrigger]);
 
-  
-
   return (
     <div>
       <div>
         <h1>{albumName}</h1>
+        <h3>Created by: {albumOwner || "Unknown"}</h3>
       </div>
 
       <h2>Album Tags</h2>
@@ -275,7 +274,7 @@ useEffect(() => {
                   ? "2px solid red"
                   : coverMode && selectedCover === img.id
                   ? "2px solid green"
-                  : "1px solid #ddd"
+                  : "1px"
                 }}
                 onClick={() => {
                   if (removeMode) {
@@ -305,7 +304,7 @@ useEffect(() => {
         {isOwner && (
           <div>
             <div>
-              <h3>Update Album Tags with AI</h3>
+              <h3>Update Album Tags with Semantic Search</h3>
               <input 
                   type="text" 
                   value={albumPrompt} 

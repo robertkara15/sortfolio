@@ -125,6 +125,53 @@ class UserImagesView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+        
+
+class UserSpecificImagesView(APIView):
+    """ Retrieve images uploaded by a specific user """
+    permission_classes = [AllowAny]  # Anyone can view images
+
+    def get(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        user_images = UploadedImage.objects.filter(user=user)
+
+        if not user_images.exists():
+            return Response({"error": "No images found for this user."}, status=404)
+
+        image_data = [
+            {
+                "id": img.id,
+                "image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{img.image}",
+                "tags": img.tags,
+                "posted_by": img.user.username,
+            }
+            for img in user_images
+        ]
+        return Response(image_data, status=200)
+
+class UserSpecificAlbumsView(APIView):
+    """ Retrieve albums created by a specific user """
+    permission_classes = [AllowAny]  # Anyone can view albums
+
+    def get(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        albums = Album.objects.filter(user=user)
+
+        if not albums.exists():
+            return Response({"error": "No albums found for this user."}, status=404)
+
+        album_data = [
+            {
+                "id": album.id,
+                "name": album.name,
+                "owner": album.user.username,
+                "cover_image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{album.cover_image.image}"
+                if album.cover_image else None,
+            }
+            for album in albums
+        ]
+        return Response(album_data, status=200)
+
 
 class FinalizeImageUploadView(APIView):
     permission_classes = [IsAuthenticated]

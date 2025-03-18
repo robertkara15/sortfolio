@@ -1,5 +1,29 @@
 from django.urls import path
-from .views import ImageUploadView, UserImagesView, FinalizeImageUploadView, GenerateTagsView, CreateAlbumView, UserAlbumsView, AlbumImagesView, ImageDetailView, DeleteAlbumView, SetAlbumCoverView, AddTagsToAlbumView, RemoveTagsFromAlbumView, UserTagsView, DeleteImageView, ImageDetailView, EditImageTagsView, AnalyticsView, EditImageNameView, PublicUsersView, PublicImagesView, PublicAlbumsView, UpdateAlbumTagsFromPromptView
+from .views import ( 
+    ImageUploadView, 
+    UserImagesView, 
+    FinalizeImageUploadView, 
+    GenerateTagsView, 
+    CreateAlbumView, 
+    UserAlbumsView, 
+    AlbumImagesView, 
+    ImageDetailView, 
+    DeleteAlbumView, 
+    SetAlbumCoverView, 
+    AddTagsToAlbumView, 
+    RemoveTagsFromAlbumView, 
+    UserTagsView, 
+    DeleteImageView, 
+    ImageDetailView, 
+    EditImageTagsView, 
+    AnalyticsView, 
+    EditImageNameView, 
+    PublicUsersView, 
+    PublicImagesView, 
+    PublicAlbumsView, 
+    UpdateAlbumTagsFromPromptView,
+    UserSpecificImagesView,
+    UserSpecificAlbumsView)
 
 urlpatterns = [
     path('upload/', ImageUploadView.as_view(), name='image-upload'),
@@ -23,5 +47,7 @@ urlpatterns = [
     path("explore/users/", PublicUsersView.as_view(), name="explore-users"),
     path("explore/images/", PublicImagesView.as_view(), name="explore-images"),
     path("explore/albums/", PublicAlbumsView.as_view(), name="explore-albums"),
-    path('album/<int:album_id>/update-tags-from-prompt/', UpdateAlbumTagsFromPromptView.as_view(), name='update-tags-from-prompt'),   
+    path('album/<int:album_id>/update-tags-from-prompt/', UpdateAlbumTagsFromPromptView.as_view(), name='update-tags-from-prompt'),
+    path("user-images/<int:user_id>/", UserSpecificImagesView.as_view(), name="user-specific-images"),
+    path("user-albums/<int:user_id>/", UserSpecificAlbumsView.as_view(), name="user-specific-albums"),
 ]

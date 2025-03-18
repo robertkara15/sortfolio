@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const { userId } = useParams();
@@ -12,6 +11,8 @@ const Profile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [userImages, setUserImages] = useState([]);
+  const [userAlbums, setUserAlbums] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,13 +37,28 @@ const Profile = () => {
         setProfileData(response.data);
 
         setIsOwner(userId === "me");
+
+        // Fetch User Images
+        const imagesResponse = await axios.get(
+          `http://127.0.0.1:8000/images/user-images/${userId}/`,
+          { headers }
+        );
+        setUserImages(imagesResponse.data);
+
+        // Fetch User Albums
+        const albumsResponse = await axios.get(
+          `http://127.0.0.1:8000/images/user-albums/${userId}/`,
+          { headers }
+        );
+        setUserAlbums(albumsResponse.data);
+
       } catch (error) {
         console.error("Failed to fetch profile:", error);
       }
     };
 
     fetchProfileData();
-  }, [userId]);
+  }, [userId, navigate]);
 
   // Handle Profile Picture Upload
   const handleFileChange = (event) => {
@@ -203,7 +219,54 @@ const Profile = () => {
           </form>
         </div>
       ) : (
-        <p><strong>{profileData.username}</strong> has uploaded {profileData.image_count} images.</p>
+        <div>
+          <p><strong>{profileData.username}</strong> has uploaded {profileData.image_count} images.</p>
+
+          <h3>{isOwner ? "My Images" : `${profileData.username}'s Albums`}</h3>
+          <div style={{ display: "flex", flexWrap: "wrap" }}>
+            {userAlbums.length > 0 ? (
+              userAlbums.map((album) => (
+                <div 
+                  key={album.id} 
+                  style={{ margin: "10px", padding: "10px", border: "1px solid #ddd", cursor: "pointer" }}
+                  onClick={() => navigate(`/album/${album.id}`)}
+                >
+                  <img
+                    src={album.cover_image_url || "https://via.placeholder.com/150"}
+                    alt={album.album_name}
+                    width="150"
+                  />
+                  <p>{album.album_name}</p>
+                </div>
+              ))
+            ) : (
+              <p>{isOwner ? "You have no albums." : "This user has no albums."}</p>
+            )}
+          </div>
+
+          <h3>{isOwner ? "My Images" : `${profileData.username}'s Images`}</h3>
+          <div style={{ display: "flex", flexWrap: "wrap" }}>
+            {userImages.length > 0 ? (
+              userImages.map((image) => (
+                <div 
+                  key={image.id} 
+                  style={{ margin: "10px", padding: "10px", border: "1px solid #ddd", cursor: "pointer" }}
+                  onClick={() => navigate(`/image/${image.id}`)}
+                >
+                  <img
+                    src={image.image_url || "https://via.placeholder.com/150"}
+                    alt="User Upload"
+                    width="150"
+                  />
+                </div>
+              ))
+            ) : (
+              <p>{isOwner ? "You have no images uploaded." : "This user has not uploaded any images."}</p>
+            )}
+          </div>
+        </div>
+        
+        
       )}
     </div>
   );
