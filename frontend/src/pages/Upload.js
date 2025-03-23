@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import "../styles/Upload.css";
 
 function Upload() {
   const [images, setImages] = useState([]);
@@ -184,28 +185,25 @@ function Upload() {
   };
 
   return (
-    <div>
-      <h2>Upload Images</h2>
+    <div className="upload-container">
+      <h2 className="upload-title">Upload Images</h2>
 
-      {/* Quick Upload All Button */}
       {images.length > 0 && (
-        <button 
-          onClick={handleQuickUploadAll} 
-          style={{ marginBottom: "10px", padding: "10px", backgroundColor: "#ff4757", color: "white", border: "none", cursor: "pointer" }}>
+        <button className="quick-upload-btn" onClick={handleQuickUploadAll}>
           Quick Upload All (Ignore Selected Tags)
         </button>
       )}
 
-      <div {...getRootProps()} style={dropzoneStyle}>
+      <div {...getRootProps()} className="dropzone">
         <input {...getInputProps()} />
         {isDragActive ? <p>Drop the files here...</p> : <p>Drag & drop images here, or click to select</p>}
       </div>
 
       {images.length > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", marginTop: "10px" }}>
+        <div className="image-grid">
           {images.map((imageObj, index) => (
-            <div key={index} style={{ margin: "10px", padding: "10px", border: "1px solid #ddd" }}>
-              <img src={imageObj.preview} alt="Preview" style={{ width: "150px", height: "150px", objectFit: "cover" }} />
+            <div key={index} className="image-card">
+              <img src={imageObj.preview} alt="Preview" />
               <p>{imageObj.file.name}</p>
 
               {aiTags[imageObj.file.name] && aiTags[imageObj.file.name].length > 0 && (
@@ -215,12 +213,7 @@ function Upload() {
                     <button
                       key={tag}
                       onClick={() => toggleTag(imageObj.file.name, tag)}
-                      style={{
-                        margin: "5px",
-                        padding: "5px",
-                        border: selectedTags[imageObj.file.name]?.includes(tag) ? "2px solid green" : "1px solid #ccc",
-                        backgroundColor: selectedTags[imageObj.file.name]?.includes(tag) ? "#d4edda" : "#fff",
-                      }}
+                      className={`tag-button ${selectedTags[imageObj.file.name]?.includes(tag) ? "selected" : ""}`}
                     >
                       {tag}
                     </button>
@@ -228,9 +221,16 @@ function Upload() {
                 </div>
               )}
 
-              <input type="text" placeholder="Enter custom tags" onChange={(e) => handleTagInput(imageObj.file.name, e.target.value)} />
+              <input
+                type="text"
+                className="custom-tag-input"
+                placeholder="Enter custom tags"
+                onChange={(e) => handleTagInput(imageObj.file.name, e.target.value)}
+              />
 
-              <button onClick={() => handleFinalizeUpload(imageObj, index)}>Finalize Upload</button>
+              <button className="finalize-btn" onClick={() => handleFinalizeUpload(imageObj, index)}>
+                Finalize Upload
+              </button>
             </div>
           ))}
         </div>
