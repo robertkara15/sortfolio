@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "../styles/Explore.css";
 
 const Explore = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,74 +41,62 @@ const Explore = () => {
   }, [searchQuery, navigate]);
 
   return (
-    <div>
-      <h2>Explore</h2>
-
+    <div className="explore-container">
+      <h2 className="explore-title">Explore</h2>
+  
+      {/* 🔍 Search Bar */}
       <input
         type="text"
         placeholder="Search users, images, albums..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        style={{ padding: "10px", width: "80%", marginBottom: "20px" }}
+        className="explore-search"
       />
-
-<h3>Users</h3>
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
-        {users.map((user) => (
-          <div
-            key={user.id}
-            style={{
-              margin: "10px",
-              cursor: "pointer",
-              textAlign: "center",
-              width: "120px", 
-            }}
-            onClick={() => navigate(`/profile/${user.id}`)}
-          >
-            {/* Profile Picture */}
-            <img
-              src={user.profile_picture || "https://via.placeholder.com/100"}
-              alt={`${user.username}'s profile`}
-              width="80"
-              height="80"
-              style={{ 
-                borderRadius: "50%", 
-                objectFit: "cover", 
-                display: "block",
-                margin: "0 auto"
-              }}
-            />
-            {/* Username */}
-            <p style={{ marginTop: "5px", fontWeight: "bold" }}>{user.username}</p>
-          </div>
-        ))}
+  
+      {/* 👤 Users Section */}
+      <div className="explore-section">
+        <h3 className="explore-section-title">Users</h3>
+        <div className="users-grid">
+          {users.map((user) => (
+            <div key={user.id} className="user-card" onClick={() => navigate(`/profile/${user.id}`)}>
+              <img
+                src={user.profile_picture || "https://via.placeholder.com/100"}
+                alt={`${user.username}'s profile`}
+                className="user-profile-pic"
+              />
+              <p>{user.username}</p>
+            </div>
+          ))}
+        </div>
       </div>
-
-
-      <h3>Images</h3>
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
-        {images.map((img) => (
-          <div key={img.id} style={{ margin: "10px", position: "relative", cursor: "pointer" }} onClick={() => navigate(`/image/${img.id}`)}>
-            <img src={img.image_url} alt={`${img.posted_by}`} width="150" />
-          </div>
-        ))}
+  
+      {/* 🖼️ Images Section */}
+      <div className="explore-section">
+        <h3 className="explore-section-title">Images</h3>
+        <div className="images-grid">
+          {images.map((img) => (
+            <div key={img.id} className="image-card" onClick={() => navigate(`/image/${img.id}`)}>
+              <img src={img.image_url} alt={`${img.posted_by}`} />
+            </div>
+          ))}
+        </div>
       </div>
-
-      <h3>Albums</h3>
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
-        {albums.map((album) => (
-          <div 
-            key={album.id} 
-            style={{ margin: "10px", cursor: "pointer" }}
-            onClick={() => navigate(`/album/${album.id}`, { state: { ownerUsername: album.owner} })}
-          >
-            <p>{album.name} (by {album.owner})</p>
-            <img src={album.cover_image_url} alt={`Album cover for ${album.name}`} width="150" />
-          </div>
-        ))}
+  
+      {/* 🎨 Albums Section */}
+      <div className="explore-section">
+        <h3 className="explore-section-title">Albums</h3>
+        <div className="albums-grid">
+          {albums.map((album) => (
+            <div key={album.id} className="album-card" onClick={() => navigate(`/album/${album.id}`)}>
+              <p>{album.name} (by {album.owner})</p>
+              <img src={album.cover_image_url} alt={`Album cover for ${album.name}`} />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
+  
 };
 
 export default Explore;

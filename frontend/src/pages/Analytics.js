@@ -3,46 +3,38 @@ import { useEffect, useState } from "react";
 import { Bar, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from "chart.js";
 import { useNavigate } from "react-router-dom";
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import "../styles/Analytics.css";
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, ChartDataLabels);
 
 const Analytics = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
-  // eslint-disable-next-line no-unused-vars
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      setIsAuthenticated(false);
       navigate("/login");
       return;
     }
 
     const fetchAnalytics = async () => {
-    try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-        console.error("No token found. User may not be logged in.");
-        return;
-        }
-
+      try {
         const response = await axios.get("http://127.0.0.1:8000/images/analytics/", {
-        headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        console.log("Analytics Data:", response.data);
         setAnalyticsData(response.data);
-    } catch (error) {
+      } catch (error) {
         console.error("Failed to fetch analytics:", error.response ? error.response.data : error);
-        }
+      }
     };
 
     fetchAnalytics();
   }, [navigate]);
 
-  if (!analyticsData) return <p>Loading analytics...</p>;
+  if (!analyticsData) return <p className="loading-text">Loading analytics...</p>;
 
   const { total_images, top_tags, tag_distribution } = analyticsData;
 
@@ -53,39 +45,53 @@ const Analytics = () => {
       {
         label: "Images per Tag",
         data: top_tags.length > 0 ? top_tags.map((tag) => tag[1]) : [0],
-        backgroundColor: ["#ff6384", "#36a2eb", "#ffce56", "#4caf50", "#9966ff"],
+        backgroundColor: top_tags.map((_, i) => `hsl(${i * 60}, 70%, 50%)`),
       },
     ],
   };
 
-  // Pie Chart Data (Tag Distribution)
+  const barChartOptions = {
+    plugins: {
+      datalabels: {
+        anchor: "center",
+        align: "center",
+        formatter: (value) => value, 
+        font: { weight: "bold", size: 14 },
+        color: "white",
+      },
+    },
+  };
+
+  const sortedTags = [...tag_distribution].sort((a, b) => b.count - a.count);
+  const topTags = sortedTags.slice(0, 10);
+  const othersCount = sortedTags.slice(10).reduce((sum, entry) => sum + entry.count, 0);
+
   const pieChartData = {
-    labels: tag_distribution.map((entry) => entry.tag),
+    labels: [...topTags.map(entry => entry.tag), "Others"],
     datasets: [
       {
-        data: tag_distribution.map((entry) => entry.count),
-        backgroundColor: ["#ff6384", "#36a2eb", "#ffce56", "#4caf50", "#9966ff"],
+        data: [...topTags.map(entry => entry.count), othersCount],
+        backgroundColor: topTags.map((_, i) => `hsl(${i * 30}, 70%, 50%)`).concat("#999"),
       },
     ],
   };
 
   return (
-    <div>
-      <h2>Image Analytics</h2>
-      
-      {/* Total Images Uploaded */}
-      <h3>Total Images Uploaded: {total_images}</h3>
+    <div className="analytics-container">
+      <h2 className="analytics-title">Image Analytics</h2>
 
-      {/* Bar Chart: Top 5 Most Used Tags */}
-      <div style={{ width: "50%", margin: "auto" }}>
-        <h3>Top 5 Most Used Tags</h3>
-        <Bar data={barChartData} />
-      </div>
+      <h3 className="total-uploads">Total Images Uploaded: {total_images}</h3>
 
-      {/* Pie Chart: Tag Distribution */}
-      <div style={{ width: "50%", margin: "auto", marginTop: "20px" }}>
-        <h3>Tag Distribution</h3>
-        <Pie data={pieChartData} />
+      <div className="charts-grid">
+        <div className="chart-card">
+          <h3>Top 5 Most Used Tags</h3>
+          <Bar data={barChartData} options={barChartOptions} />
+        </div>
+
+        <div className="chart-card">
+          <h3>Tag Distribution</h3>
+          <Pie data={pieChartData} />
+        </div>
       </div>
     </div>
   );

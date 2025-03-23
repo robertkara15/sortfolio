@@ -1,0 +1,60 @@
+/* Overall page container */
+.analytics-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Title Styling */
+  .analytics-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  /* Total Uploads */
+  .total-uploads {
+    font-size: 18px;
+    font-weight: normal;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  /* Grid layout for charts */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+    max-width: 900px;
+  }
+  
+  /* Individual chart styling */
+  .chart-card {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .charts-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  /* Loading Text */
+  .loading-text {
+    font-size: 18px;
+    text-align: center;
+    margin-top: 50px;
+    color: #666;
+  }
+  

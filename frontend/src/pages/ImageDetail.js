@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import "../styles/ImageDetail.css";
 
 const ImageDetail = () => {
   const { imageId } = useParams();
@@ -149,58 +150,53 @@ const ImageDetail = () => {
   if (!imageData) return <p>Loading...</p>;
 
   return (
-    <div>
-      <h2>Image Details</h2>
-      <img src={imageData.image_url} alt={imageData.name} width="300" />
-      <p><strong>Image Name:</strong></p>
-      {isOwner ? (
-        <div>
-          <input 
-            type="text" 
-            value={imageData.name} 
-            onChange={(e) => setImageData({ ...imageData, name: e.target.value })} 
-          />
-          <button onClick={handleEditImageName}>Save</button>
-        </div>
-      ) : (
-        <p>{imageData.name}</p>
-      )}
+    <div className="image-detail-container">
+      <h2 className="image-title">Image Details</h2>
+      <img src={imageData.image_url} alt={imageData.name} className="image-preview" />
 
-      <p><strong>Uploaded At:</strong> {imageData.uploaded_at}</p>
-      <p><strong>Posted By:</strong> {imageData.posted_by}</p>
+      <div className="image-meta">
+        <p><strong>Image Name:</strong></p>
+        {isOwner ? (
+          <div className="edit-name-section">
+            <input
+              type="text"
+              value={imageData.name}
+              onChange={(e) => setImageData({ ...imageData, name: e.target.value })}
+            />
+            <button onClick={handleEditImageName}>Save</button>
+          </div>
+        ) : (
+          <p>{imageData.name}</p>
+        )}
+        <p><strong>Uploaded At:</strong> {imageData.uploaded_at}</p>
+        <p><strong>Posted By:</strong> {imageData.posted_by}</p>
+      </div>
 
-      {/* Tags Section */}
       <h3>Tags</h3>
-      <div>
+      <div className="tag-list">
         {imageData.tags.map((tag) => (
-          <span key={tag} style={{ marginRight: "10px", background: "#ddd", padding: "5px" }}>
-            {tag} 
+          <span key={tag} className="tag-pill">
+            {tag}
             {isOwner && (
-              <button 
-                onClick={() => handleRemoveTag(tag)}
-                style={{ marginLeft: "5px", cursor: "pointer", background: "red", color: "white", border: "none", padding: "2px 5px" }}
-              >
-                X
-              </button>
+              <button onClick={() => handleRemoveTag(tag)} className="tag-remove">×</button>
             )}
           </span>
         ))}
       </div>
 
-      {/* Add Tag Input (Only for the Owner) */}
       {isOwner && (
-        <div style={{ marginTop: "10px" }}>
-          <input 
-            type="text" 
-            value={newTag} 
+        <div className="tag-input-section">
+          <input
+            type="text"
+            value={newTag}
             onChange={(e) => setNewTag(e.target.value)}
             placeholder="Enter new tag"
           />
-          <button onClick={handleAddTag} style={{ marginLeft: "5px" }}>Add Tag</button>
+          <button onClick={handleAddTag}>Add Tag</button>
         </div>
       )}
 
-      <button onClick={() => navigate(-1)} style={{ marginTop: "15px" }}>Go Back</button>
+      <button onClick={() => navigate(-1)} className="back-button">Go Back</button>
     </div>
   );
 };

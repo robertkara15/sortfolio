@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../styles/Dashboard.css";
 
 const Dashboard = () => {
   const [albums, setAlbums] = useState([]);
@@ -89,102 +90,49 @@ const Dashboard = () => {
 
 
   return (
-    <div>
-      <div>
-        <h2>Dashboard</h2>
-      <div>
-        <button onClick={() => navigate("/upload")}>Upload Image</button>
-        <button onClick={() => setRemoveImageMode(!removeImageMode)}>
+    <div className="dashboard-container">
+      <h2 className="dashboard-title">Dashboard</h2>
+  
+      {/* 📌 Dashboard Action Buttons */}
+      <div className="dashboard-buttons">
+        <button className="upload-btn" onClick={() => navigate("/upload")}>Upload Image</button>
+        <button className="remove-btn" onClick={() => setRemoveImageMode(!removeImageMode)}>
           {removeImageMode ? "Exit Remove Mode" : "Remove Images"}
         </button>
+        <button className="create-album-btn" onClick={createNewAlbum}>Create New Album</button>
       </div>
-
-      <div>
-        <button 
-          onClick={createNewAlbum} 
-          style={{
-            padding: "10px",
-            fontSize: "16px",
-            marginTop: "15px",
-            marginBottom: "15px",
-            cursor: "pointer",
-            backgroundColor: "#28a745",
-            color: "#fff",
-            border: "none",
-            borderRadius: "5px",
-          }}
-        >
-          Create New Album
-        </button>
-      </div>
-
-      
-      <h2>My Albums</h2>
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
-          {albums.map((album) => (
-            <div key={album.id} onClick={() => navigate(`/album/${album.id}`)} style={{ cursor: "pointer", margin: "10px" }}>
-              <p>{album.name}</p>
-              <img 
-                src={album.cover_image_url ? album.cover_image_url : "default.jpg"} 
-                alt="Album Cover" 
-                width="150"
-                onError={(e) => e.target.src = "default.jpg"} 
-              />
-
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <h2>My Images</h2>
-      <div style={{ display: "flex", flexWrap: "wrap", marginTop: "10px" }}>
-        {images.map((img) => (
-            <div 
-            key={img.id} 
-            style={{ margin: "10px", position: "relative", cursor: removeImageMode ? "default" : "pointer" }}
-            onClick={() => {
-                if (!removeImageMode) {
-                    navigate(`/image/${img.id}`);
-                }
-            }}
-        >
-            <img 
-                src={img.image_url} 
-                alt="Uploaded" 
-                width="150" 
-                onError={(e) => e.target.src = "default.jpg"} 
-            />
-            
-            {removeImageMode && (
-                <button 
-                    onClick={(event) => {
-                        event.stopPropagation(); 
-                        deleteImage(img.id);
-                    }}
-                    style={{
-                        position: "absolute",
-                        top: 0,
-                        right: 0,
-                        backgroundColor: "red",
-                        color: "white",
-                        border: "none",
-                        cursor: "pointer"
-                    }}
-                >
-                    X
-                </button>
-            )}
-        </div>
-        
+  
+      {/* 🖼️ My Albums */}
+      <h2 className="dashboard-title">My Albums</h2>
+      <div className="albums-grid">
+        {albums.map((album) => (
+          <div key={album.id} className="album-card" onClick={() => navigate(`/album/${album.id}`)}>
+            <p>{album.name}</p>
+            <img src={album.cover_image_url ? album.cover_image_url : "default.jpg"} alt="Album Cover" onError={(e) => e.target.src = "default.jpg"} />
+          </div>
         ))}
-    </div>
-
-    
-
-
-
+      </div>
+  
+      {/* 🖼️ My Images */}
+      <h2 className="dashboard-title">My Images</h2>
+      <div className="images-grid">
+        {images.map((img) => (
+          <div key={img.id} className="image-card" style={{ position: "relative" }} onClick={() => !removeImageMode && navigate(`/image/${img.id}`)}>
+            <img src={img.image_url} alt="Uploaded" onError={(e) => e.target.src = "default.jpg"} />
+            {removeImageMode && (
+              <button className="remove-image-btn" onClick={(event) => {
+                event.stopPropagation();
+                deleteImage(img.id);
+              }}>
+                X
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
+  
 };
 
 export default Dashboard;

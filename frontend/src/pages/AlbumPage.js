@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import "../styles/AlbumPage.css";
 
 const AlbumPage = () => {
   const { albumId } = useParams();
@@ -243,183 +244,116 @@ useEffect(() => {
   fetchAlbumData();
 }, [fetchAlbumData, updateTrigger]);
 
-  return (
-    <div>
-      <div>
+return (
+    <div className="album-container">
+      <div className="album-header">
         <h1>{albumName}</h1>
         <h3>Created by: {albumOwner || "Unknown"}</h3>
       </div>
 
       <h2>Album Tags</h2>
       {albumTags.length > 0 ? (
-        albumTags.map((tag) => (
-          <span key={tag} style={{ marginRight: "10px", background: "#ddd", padding: "5px" }}>
-            {tag}
-          </span>
-        ))
+        <div className="tag-list">
+          {albumTags.map((tag) => (
+            <span key={tag} className="tag">{tag}</span>
+          ))}
+        </div>
       ) : (
         <p>No tags in this album.</p>
       )}
 
       <h2>Album Images</h2>
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
-        {albumImages && albumImages.length > 0 ? (
-            albumImages.map((img) => (
-            <div 
-                key={img.id} 
-                style={{ 
-                  margin: "10px", 
-                  cursor: "pointer", 
-                  padding: "10px", 
-                  border: removeMode
-                  ? "2px solid red"
-                  : coverMode && selectedCover === img.id
-                  ? "2px solid green"
-                  : "1px"
-                }}
-                onClick={() => {
-                  if (removeMode) {
-                    removeFromAlbum(img.id);
-                  } else if (coverMode) {
-                    setSelectedCover(img.id);
-                  } else {
-                    navigate(`/image/${img.id}`);
-                  }
-                }}
-            >
-                <img 
-                src={img.image_url || "default.jpg"}  
-                alt="Album Content" 
-                width="150" 
-                onError={(e) => e.target.src = "default.jpg"} 
-                />
-                {removeMode && <p style={{ color: "red" }}>Click to Remove</p>}
-            </div>
-            ))
-        ) : (
-            <p>No images in this album.</p>
-        )}
+      <div className="image-grid">
+        {albumImages.map((img) => (
+          <div
+            key={img.id}
+            className={`image-card ${removeMode ? "remove" : ""} ${coverMode && selectedCover === img.id ? "cover-selected" : ""}`}
+            onClick={() => {
+              if (removeMode) removeFromAlbum(img.id);
+              else if (coverMode) setSelectedCover(img.id);
+              else navigate(`/image/${img.id}`);
+            }}
+          >
+            <img src={img.image_url || "default.jpg"} alt="Album Content" />
+            {removeMode && <p style={{ color: "red" }}>Click to Remove</p>}
+          </div>
+        ))}
       </div>
 
-      <div>
-        {isOwner && (
-          <div>
-            <div>
-              <h3>Update Album Tags with Semantic Search</h3>
-              <input 
-                  type="text" 
-                  value={albumPrompt} 
-                  onChange={(e) => setAlbumPrompt(e.target.value)} 
-                  placeholder="An album consisting of..."
-              />
-              <button onClick={updateAlbumTagsFromPrompt}>Update Album Tags</button>
-            </div>
+      {isOwner && (
+        <>
+          <div className="prompt-box">
+            <h3>Update Album Tags with Semantic Search</h3>
+            <input
+              type="text"
+              value={albumPrompt}
+              onChange={(e) => setAlbumPrompt(e.target.value)}
+              placeholder="An album consisting of..."
+            />
+            <button onClick={updateAlbumTagsFromPrompt} className="update-btn">Update Album Tags</button>
+          </div>
 
-            <div>
-              <button onClick={() => setAddTagMode(!addTagMode)}>
-                  {addTagMode ? "Exit Add Tag Mode" : "Add Tags"}
-              </button>
-              <button onClick={() => setRemoveTagMode(!removeTagMode)}>
-                  {removeTagMode ? "Exit Remove Tags Mode" : "Remove Tags"}
-              </button>
-            </div>
+          <div className="album-buttons">
+            <button onClick={() => setAddTagMode(!addTagMode)}>
+              {addTagMode ? "Exit Add Tag Mode" : "Add Tags"}
+            </button>
+            <button onClick={() => setRemoveTagMode(!removeTagMode)}>
+              {removeTagMode ? "Exit Remove Tag Mode" : "Remove Tags"}
+            </button>
+            <button onClick={() => setAddMode(!addMode)} className="outline">
+              {addMode ? "Exit Add Mode" : "Add Images"}
+            </button>
+            <button onClick={() => setRemoveMode(!removeMode)} className="outline">
+              {removeMode ? "Exit Remove Mode" : "Remove Images"}
+            </button>
+            <button onClick={() => setCoverMode(!coverMode)} className="outline">
+              {coverMode ? "Cancel Cover Selection" : "Set Cover Image"}
+            </button>
+            {coverMode && <button onClick={handleSetCover}>Save Cover</button>}
+            <button onClick={handleDeleteAlbum} className="danger">Delete Album</button>
+          </div>
 
-            <div>
-            {addTagMode && (
-              <div>
-                  <h3>Select Tags to Add</h3>
-                  {allTags.map((tag) => (
-                      !albumTags.includes(tag) && (
-                          <button key={tag} onClick={() => addTagsToAlbum(tag)}>{tag}</button>
-                      )
-                  ))}
-              </div>
-            )}
+          {addTagMode && (
+            <div className="tag-mode">
+              <h3>Select Tags to Add</h3>
+              {allTags.map((tag) =>
+                !albumTags.includes(tag) && (
+                  <button key={tag} onClick={() => addTagsToAlbum(tag)}>{tag}</button>
+                )
+              )}
             </div>
+          )}
 
-            <div>
-            {removeTagMode && (
-              <div>
-                <h3>Select Tags to Remove</h3>
-                {albumTags.map((tag) => (
-                  <button key={tag} onClick={() => removeTagsFromAlbum([tag])}>{tag}</button>
+          {removeTagMode && (
+            <div className="tag-mode">
+              <h3>Select Tags to Remove</h3>
+              {albumTags.map((tag) => (
+                <button key={tag} onClick={() => removeTagsFromAlbum(tag)}>{tag}</button>
+              ))}
+            </div>
+          )}
+
+          {addMode && (
+            <>
+              <h3>Add Images to Album</h3>
+              <div className="image-grid">
+                {allImages.map((img) => (
+                  <div
+                    key={img.id}
+                    className="image-card"
+                    onClick={() => addToAlbum(img.id)}
+                  >
+                    <img src={img.image_url || "default.jpg"} alt="All Images" />
+                    <p style={{ color: "green" }}>Click to Add</p>
+                  </div>
                 ))}
               </div>
-            )}
-            </div>
+            </>
+          )}
+        </>
+      )}
 
-            <div>
-              <button 
-                onClick={handleDeleteAlbum}
-                style={{
-                    backgroundColor: "red",
-                    color: "white",
-                    padding: "10px",
-                    border: "none",
-                    cursor: "pointer",
-                    marginTop: "10px"
-                }}
-              >
-                Delete Album
-              </button>
-            </div>
-
-            <div>
-              <button onClick={() => { setAddMode(!addMode); setRemoveMode(false); }}>
-                  {addMode ? "Exit Add Mode" : "Add Images to Album"}
-              </button>
-              <button onClick={() => { setRemoveMode(!removeMode); setAddMode(false); }}>
-                  {removeMode ? "Exit Remove Mode" : "Remove Images from Album"}
-              </button>
-            </div>
-
-            <div>
-              {addMode && (
-              <>
-                <h3>Add Images to Album</h3>
-                <div style={{ display: "flex", flexWrap: "wrap" }}>
-                  {allImages.map((img) => (
-                    <div 
-                      key={img.id} 
-                      style={{ margin: "10px", cursor: "pointer", padding: "10px", border: "1px solid green" }}
-                      onClick={() => addToAlbum(img.id)}
-                    >
-                      <img 
-                        src={img.image_url || "default.jpg"}
-                        alt="All Images" 
-                        width="150" 
-                        onError={(e) => e.target.src = "default.jpg"}
-                      />
-                      <p style={{ color: "green" }}>Click to Add</p>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-            </div>
-
-            <div>
-              <div>
-                {/* Cover Selection Button */}
-                <button onClick={() => setCoverMode(!coverMode)} style={{ marginTop: "10px" }}>
-                  {coverMode ? "Cancel Cover Selection" : "Set Cover Image"}
-                </button>
-
-                {/* Save Cover Button */}
-                {coverMode && (
-                  <button onClick={handleSetCover} style={{ marginLeft: "10px" }}>
-                    Save Cover
-                  </button>
-                )}
-              </div>
-            </div>
-
-
-          </div>
-        )}
-
-      <button onClick={() => navigate(-1)}>Go Back</button>
-      </div>          
+      <button onClick={() => navigate(-1)} className="back-button">Go Back</button>
     </div>
   );
 };

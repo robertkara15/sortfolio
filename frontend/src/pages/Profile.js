@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import "../styles/Profile.css";
 
 const Profile = () => {
   const { userId } = useParams();
@@ -155,155 +156,97 @@ const Profile = () => {
   if (!profileData) return <p>Loading...</p>;
 
   return (
-    <div>
-      <h2>{isOwner ? "My Profile" : `${profileData.username}'s Profile`}</h2>
+    <div className="profile-container">
+      <h2 className="profile-title">{isOwner ? "My Profile" : `${profileData.username}'s Profile`}</h2>
 
       <img
         src={profileData.profile_picture || "https://via.placeholder.com/150"}
         alt={profileData.username}
-        width="150"
-        height="150"
-        style={{ borderRadius: "50%", objectFit: "cover", marginBottom: "10px" }}
+        className="profile-picture"
       />
 
       {isOwner ? (
-        <div>
-          <input type="file" onChange={handleFileChange} accept="image/*" />
-          <button onClick={handleUpload}>Upload New Profile Picture</button>
+        <div className="upload-section">
+          <label className="custom-file-input">
+            Choose File
+            <input type="file" onChange={handleFileChange} accept="image/*" />
+          </label>
+          <div className="profile-buttons">
+            <button className="update-btn" onClick={handleUpload}>Upload New Profile Picture</button>
+          </div>
 
-          <p><strong>First Name:</strong> {profileData.first_name}</p>
-          <p><strong>Last Name:</strong> {profileData.last_name}</p>
-          <p><strong>Images Uploaded:</strong> {profileData.image_count}</p>
+          <p className="profile-info"><strong>First Name:</strong> {profileData.first_name}</p>
+          <p className="profile-info"><strong>Last Name:</strong> {profileData.last_name}</p>
+          <p className="profile-info"><strong>Images Uploaded:</strong> {profileData.image_count}</p>
 
           <h3>Update Info</h3>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const token = localStorage.getItem("token");
-              const updatedData = {
-                first_name: profileData.first_name,
-                last_name: profileData.last_name,
-              };
+          <form className="profile-form" onSubmit={async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem("token");
+            const updatedData = {
+              first_name: profileData.first_name,
+              last_name: profileData.last_name,
+            };
 
-              try {
-                await axios.post(
-                  "http://127.0.0.1:8000/users/update-profile/",
-                  updatedData,
-                  { headers: { Authorization: `Bearer ${token}` } }
-                );
-                alert("Profile updated successfully!");
-              } catch (error) {
-                console.error("Failed to update profile:", error);
-              }
-            }}
-          >
-            <input
-              type="text"
-              placeholder="First Name"
-              value={profileData.first_name || ""}
-              onChange={(e) => setProfileData({ ...profileData, first_name: e.target.value })}
-            />
-            <input
-              type="text"
-              placeholder="Last Name"
-              value={profileData.last_name || ""}
-              onChange={(e) => setProfileData({ ...profileData, last_name: e.target.value })}
-            />
+            try {
+              await axios.post(
+                "http://127.0.0.1:8000/users/update-profile/",
+                updatedData,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              alert("Profile updated successfully!");
+            } catch (error) {
+              console.error("Failed to update profile:", error);
+            }
+          }}>
+            <input type="text" placeholder="First Name" value={profileData.first_name || ""} onChange={(e) => setProfileData({ ...profileData, first_name: e.target.value })} />
+            <input type="text" placeholder="Last Name" value={profileData.last_name || ""} onChange={(e) => setProfileData({ ...profileData, last_name: e.target.value })} />
             <button type="submit">Update Profile</button>
+            
           </form>
 
           <h3>Change Password</h3>
-          <form onSubmit={handlePasswordChange}>
-            <input
-              type="password"
-              name="oldPassword"
-              placeholder="Old Password"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-            />
-            <input
-              type="password"
-              name="newPassword"
-              placeholder="New Password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm New Password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+          <form className="profile-form" onSubmit={handlePasswordChange}>
+            <input type="password" name="oldPassword" placeholder="Old Password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} />
+            <input type="password" name="newPassword" placeholder="New Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+            <input type="password" name="confirmPassword" placeholder="Confirm New Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
             <button type="submit">Change Password</button>
           </form>
 
-
-          <button 
-            onClick={deleteAccount} 
-            style={{
-                padding: "10px",
-                fontSize: "16px",
-                cursor: "pointer",
-                backgroundColor: "red",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                marginTop: "15px"
-            }}
-            >
-                Delete Account
-          </button>
+          <button onClick={deleteAccount} className="delete-btn">Delete Account</button>
+          
         </div>
       ) : (
         <div>
           <p><strong>{profileData.username}</strong> has uploaded {profileData.image_count} images.</p>
 
-          <h3>{isOwner ? "My Images" : `${profileData.username}'s Albums`}</h3>
-          <div style={{ display: "flex", flexWrap: "wrap" }}>
+          <h3>{profileData.username}'s Albums</h3>
+          <div className="albums-grid">
             {userAlbums.length > 0 ? (
               userAlbums.map((album) => (
-                <div 
-                  key={album.id} 
-                  style={{ margin: "10px", padding: "10px", border: "1px solid #ddd", cursor: "pointer" }}
-                  onClick={() => navigate(`/album/${album.id}`)}
-                >
-                  <img
-                    src={album.cover_image_url || "https://via.placeholder.com/150"}
-                    alt={album.album_name}
-                    width="150"
-                  />
+                <div key={album.id} className="album-card" onClick={() => navigate(`/album/${album.id}`)}>
+                  <img src={album.cover_image_url || "https://via.placeholder.com/150"} alt={album.album_name} />
                   <p>{album.album_name}</p>
                 </div>
               ))
             ) : (
-              <p>{isOwner ? "You have no albums." : "This user has no albums."}</p>
+              <p>This user has no albums.</p>
             )}
           </div>
 
-          <h3>{isOwner ? "My Images" : `${profileData.username}'s Images`}</h3>
-          <div style={{ display: "flex", flexWrap: "wrap" }}>
+          <h3>{profileData.username}'s Images</h3>
+          <div className="images-grid">
             {userImages.length > 0 ? (
               userImages.map((image) => (
-                <div 
-                  key={image.id} 
-                  style={{ margin: "10px", padding: "10px", border: "1px solid #ddd", cursor: "pointer" }}
-                  onClick={() => navigate(`/image/${image.id}`)}
-                >
-                  <img
-                    src={image.image_url || "https://via.placeholder.com/150"}
-                    alt="User Upload"
-                    width="150"
-                  />
+                <div key={image.id} className="image-card" onClick={() => navigate(`/image/${image.id}`)}>
+                  <img src={image.image_url || "https://via.placeholder.com/150"} alt="User Upload" />
                 </div>
               ))
             ) : (
-              <p>{isOwner ? "You have no images uploaded." : "This user has not uploaded any images."}</p>
+              <p>This user has not uploaded any images.</p>
             )}
           </div>
         </div>
-        
-        
       )}
     </div>
   );
