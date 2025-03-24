@@ -38,18 +38,19 @@ const Profile = () => {
         );
         setProfileData(response.data);
 
+        const actualUserId = response.data.id;
         setIsOwner(userId === "me");
 
         // Fetch User Images
         const imagesResponse = await axios.get(
-          `http://127.0.0.1:8000/images/user-images/${userId}/`,
+          `http://127.0.0.1:8000/images/user-images/${actualUserId}/`,
           { headers }
         );
         setUserImages(imagesResponse.data);
 
         // Fetch User Albums
         const albumsResponse = await axios.get(
-          `http://127.0.0.1:8000/images/user-albums/${userId}/`,
+          `http://127.0.0.1:8000/images/user-albums/${actualUserId}/`,
           { headers }
         );
         setUserAlbums(albumsResponse.data);
@@ -72,25 +73,35 @@ const Profile = () => {
       alert("Please select a file first!");
       return;
     }
-
+  
     try {
       const token = localStorage.getItem("token");
       const formData = new FormData();
       formData.append("profile_picture", selectedFile);
-
-      await axios.post(
+  
+      const response = await axios.post(
         "http://127.0.0.1:8000/users/update-profile-picture/",
         formData,
-        { headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
-
+  
       alert("Profile picture updated!");
-      window.location.reload();
+      setProfileData((prev) => ({
+        ...prev,
+        profile_picture: response.data.profile_picture_url,
+      }));
+      setSelectedFile(null);
     } catch (error) {
       console.error("Failed to upload profile picture:", error);
       alert("Failed to upload profile picture.");
     }
   };
+  
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
@@ -160,10 +171,15 @@ const Profile = () => {
       <h2 className="profile-title">{isOwner ? "My Profile" : `${profileData.username}'s Profile`}</h2>
 
       <img
-        src={profileData.profile_picture || "https://via.placeholder.com/150"}
+        src={
+          profileData.profile_picture
+            ? `${profileData.profile_picture}?t=${Date.now()}`
+            : "https://via.placeholder.com/150"
+        }
         alt={profileData.username}
         className="profile-picture"
       />
+
 
       {isOwner ? (
         <div className="upload-section">
