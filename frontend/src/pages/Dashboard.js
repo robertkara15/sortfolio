@@ -93,7 +93,7 @@ const Dashboard = () => {
     <div className="dashboard-container">
       <h2 className="dashboard-title">Dashboard</h2>
   
-      {/* 📌 Dashboard Action Buttons */}
+      {/* Dashboard Action Buttons */}
       <div className="dashboard-buttons">
         <button className="upload-btn" onClick={() => navigate("/upload")}>Upload Image</button>
         <button className="remove-btn" onClick={() => setRemoveImageMode(!removeImageMode)}>
@@ -102,7 +102,7 @@ const Dashboard = () => {
         <button className="create-album-btn" onClick={createNewAlbum}>Create New Album</button>
       </div>
   
-      {/* 🖼️ My Albums */}
+      {/* My Albums */}
       <h2 className="dashboard-title">My Albums</h2>
       <div className="albums-grid">
         {albums.map((album) => (
@@ -113,7 +113,7 @@ const Dashboard = () => {
         ))}
       </div>
   
-      {/* 🖼️ My Images */}
+      {/* My Images */}
       <h2 className="dashboard-title">My Images</h2>
       <div className="images-grid">
         {images.map((img) => (
