@@ -44,7 +44,7 @@ const Explore = () => {
     <div className="explore-container">
       <h2 className="explore-title">Explore</h2>
   
-      {/* 🔍 Search Bar */}
+      {/* Search Bar */}
       <input
         type="text"
         placeholder="Search users, images, albums..."
@@ -53,7 +53,7 @@ const Explore = () => {
         className="explore-search"
       />
   
-      {/* 👤 Users Section */}
+      {/* Users Section */}
       <div className="explore-section">
         <h3 className="explore-section-title">Users</h3>
         <div className="users-grid">
@@ -70,7 +70,7 @@ const Explore = () => {
         </div>
       </div>
   
-      {/* 🖼️ Images Section */}
+      {/* Images Section */}
       <div className="explore-section">
         <h3 className="explore-section-title">Images</h3>
         <div className="images-grid">
@@ -82,7 +82,7 @@ const Explore = () => {
         </div>
       </div>
   
-      {/* 🎨 Albums Section */}
+      {/* Albums Section */}
       <div className="explore-section">
         <h3 className="explore-section-title">Albums</h3>
         <div className="albums-grid">

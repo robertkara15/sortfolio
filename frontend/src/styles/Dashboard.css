@@ -126,5 +126,6 @@
 
   .albums-grid, .images-grid {
     grid-template-columns: 1fr;
+    justify-items: center;
   }
 }

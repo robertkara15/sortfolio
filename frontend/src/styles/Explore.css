@@ -123,9 +123,16 @@
   /* Responsive Design */
   @media (max-width: 768px) {
     .users-grid {
-      grid-template-columns: 1fr;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      justify-content: center;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
     }
-  
+    
+
     .images-grid, .albums-grid {
       grid-template-columns: 1fr;
     }
