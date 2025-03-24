@@ -264,14 +264,22 @@ class AlbumImagesView(APIView):
     def get(self, request, album_id):
         album = get_object_or_404(Album, id=album_id)
 
-        is_owner = request.user.is_authenticated and request.user == album.user
-
+        # Always fetch the album owner's images
         all_images = UploadedImage.objects.filter(user=album.user)
 
-        matching_images = [
+        # Get existing manually-added images (don't remove them!)
+        existing_images = set(album.images.all())
+
+        # Get tag-matching images
+        tag_matched = set(
             img for img in all_images if any(tag in album.tags for tag in img.tags)
-        ]
-        album.images.set(matching_images)
+        )
+
+        # Combine both sets (preserve manual + auto-tagged)
+        combined_images = list(existing_images.union(tag_matched))
+
+        # Update album.images (only if needed)
+        album.images.set(combined_images)
 
         return Response({
             "id": album.id,
@@ -284,9 +292,10 @@ class AlbumImagesView(APIView):
                     "image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{img.image}",
                     "tags": img.tags,
                 }
-                for img in matching_images
+                for img in combined_images
             ]
         }, status=200)
+
 
 
 
@@ -433,8 +442,12 @@ class AddTagsToAlbumView(APIView):
             models.Q(tags__overlap=album.tags)
         )
 
-        # Store these images in album.images
-        album.images.set(matching_images)
+        # Combine with existing manually-added images
+        existing_images = set(album.images.all())
+        combined_images = list(existing_images.union(matching_images))
+
+        # Update album
+        album.images.set(combined_images)
 
         print(f"Tags after saving album: {album.tags}")
         print(f"Successfully linked {len(matching_images)} images to album '{album.name}'")
@@ -688,7 +701,9 @@ class UpdateAlbumTagsFromPromptView(APIView):
 
         # Find images that match the new tags and add them to the album
         matching_images = UploadedImage.objects.filter(user=request.user, tags__overlap=new_album_tags)
-        album.images.set(matching_images)
+        existing_images = set(album.images.all())
+        combined_images = list(existing_images.union(matching_images))
+        album.images.set(combined_images)
 
         print(f"Updated Album Tags: {album.tags}")
         print(f"Images Added to Album: {[img.id for img in matching_images]}")
