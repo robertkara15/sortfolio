@@ -12,43 +12,39 @@ const ImageDetail = () => {
   const [isOwner, setIsOwner] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch image data first
   useEffect(() => {
-    const fetchImageData = async () => {
-      try {
-        const response = await axios.get(`http://127.0.0.1:8000/images/image/${imageId}/`);
-        setImageData(response.data);
-      } catch (error) {
-        console.error("Failed to fetch image details:", error);
-      }
-    };
-
-    fetchImageData();
-  }, [imageId]);
-
-  // Fetch the current user after image data is available
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) return;
-
+  
+        // Fetch current user
         const userResponse = await axios.get("http://127.0.0.1:8000/users/me/", {
           headers: { Authorization: `Bearer ${token}` },
         });
-
+        const currentUsername = userResponse.data.username;
         setCurrentUser(userResponse.data);
-
-        if (imageData) {
-          setIsOwner(userResponse.data.username === imageData.posted_by);
+  
+        // Fetch image data
+        const imageResponse = await axios.get(`http://127.0.0.1:8000/images/image/${imageId}/`);
+        const imgData = imageResponse.data;
+        setImageData(imgData);
+  
+        // Set isOwner only after both are fetched
+        if (imgData.posted_by === currentUsername) {
+          setIsOwner(true);
+        } else {
+          setIsOwner(false);
         }
+  
       } catch (error) {
-        console.error("Failed to fetch current user:", error);
+        console.error("Failed to fetch image or user data:", error);
       }
     };
-
-    fetchCurrentUser();
-  }, [imageData]);
+  
+    fetchData();
+  }, [imageId]);
+  
 
   const handleEditImageName = async () => {
     if (!isOwner) return;

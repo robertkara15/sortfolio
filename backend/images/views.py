@@ -266,7 +266,7 @@ class AlbumImagesView(APIView):
 
         is_owner = request.user.is_authenticated and request.user == album.user
 
-        all_images = UploadedImage.objects.filter(user=request.user)
+        all_images = UploadedImage.objects.filter(user=album.user)
 
         matching_images = [
             img for img in all_images if any(tag in album.tags for tag in img.tags)
@@ -287,6 +287,9 @@ class AlbumImagesView(APIView):
                 for img in matching_images
             ]
         }, status=200)
+
+
+
 
     def post(self, request, album_id):
         """ Allow adding images to an album """
