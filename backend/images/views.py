@@ -91,7 +91,8 @@ class ImageUploadView(APIView):
             uploaded_image = UploadedImage.objects.create(
                 user=request.user,
                 image=s3_key,
-                tags=[]
+                tags=[],
+                name=image_file.name
             )
 
             return Response({
@@ -120,6 +121,8 @@ class UserImagesView(APIView):
                     "id": image.id,
                     "image_url": f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{image.image}",
                     "tags": image.tags,
+                    "name": image.name,
+                    "uploaded_at": image.uploaded_at.strftime("%Y-%m-%d %H:%M:%S"),
                 }
                 for image in user_images
             ]

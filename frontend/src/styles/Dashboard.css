@@ -123,6 +123,25 @@
   z-index: 10;
 }
 
+.dashboard-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 900px;
+}
+
+.dashboard-controls input,
+.dashboard-controls select {
+  padding: 10px 14px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+
 .remove-image-btn:hover {
   background-color: #ff6b66;
 }
