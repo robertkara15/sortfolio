@@ -1,24 +1,33 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Upload from "./pages/Upload";
+import AlbumPage from "./pages/AlbumPage";
+import ImageDetail from "./pages/ImageDetail";
+import Analytics from "./pages/Analytics";
+import Explore from "./pages/Explore";
+import Profile from "./pages/Profile";
+import Navbar from "./components/Navbar";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/upload" element={<Upload />} />
+        <Route path="/album/:albumId" element={<AlbumPage />} /> 
+        <Route path="/image/:imageId" element={<ImageDetail />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/explore" element={<Explore />} />
+        <Route path="/profile/:userId" element={<Profile />} />
+      </Routes>
+    </Router>
   );
 }
 

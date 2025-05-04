@@ -1,0 +1,153 @@
+.image-detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-family: "Inter", sans-serif;
+    color: #1c1c1e;
+    background-color: #f8f9fa;
+  }
+  
+  .image-title {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .image-preview {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    display: block;
+    margin: 0 auto 20px auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    object-fit: cover;
+  }
+  
+  .image-meta {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  
+  .edit-name-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .edit-name-section input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+  }
+  
+  .edit-name-section button {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    background-color: #007aff;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  
+  .edit-name-section button:hover {
+    background-color: #005ecb;
+  }
+  
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .tag-pill {
+    display: flex;
+    align-items: center;
+    background-color: #e5e5ea;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1c1c1e;
+  }
+  
+  .tag-remove {
+    margin-left: 8px;
+    background: none;
+    border: none;
+    color: #ff3b30;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .tag-input-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+  }
+  
+  .tag-input-section input {
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  
+  .tag-input-section button {
+    padding: 10px 16px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    background-color: #007aff;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  
+  .tag-input-section button:hover {
+    background-color: #005ecb;
+  }
+  
+  .back-button {
+    margin-top: 30px;
+    padding: 12px 20px;
+    background-color: #ccc;
+    color: black;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  
+  .back-button:hover {
+    background-color: #b5b5b5;
+  }
+  
+  @media (max-width: 768px) {
+    .edit-name-section,
+    .tag-input-section {
+      flex-direction: column;
+    }
+  
+    .edit-name-section input,
+    .tag-input-section input {
+      width: 100%;
+    }
+  
+    .edit-name-section button,
+    .tag-input-section button {
+      width: 100%;
+    }
+  }
+  
