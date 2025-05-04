@@ -19,12 +19,12 @@ function Upload() {
     backgroundColor: "#f9f9f9",
   };
 
-  // Handles image drop WITHOUT uploading images
+  // Handles image drop without uploading images
   const onDrop = useCallback(async (acceptedFiles) => {
     const fileObjects = acceptedFiles.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
-      id: null, // Will be assigned after manual upload
+      id: null,
     }));
 
     setImages((prev) => [...prev, ...fileObjects]);
@@ -47,7 +47,7 @@ function Upload() {
     multiple: true,
   });
 
-  // Fetch AI-generated tags WITHOUT uploading the image
+  // Fetch AI-generated tags without uploading the image
   const getAiTagsForImage = async (imageFile) => {
     const token = localStorage.getItem("token");
     if (!token) return [];
@@ -85,7 +85,7 @@ function Upload() {
     setCustomTags((prev) => ({ ...prev, [imageName]: tags }));
   };
 
-  // Uploads the image ONLY when "Finalize Upload" is clicked
+  // Uploads the image only when upload is finalised
   const handleFinalizeUpload = async (imageObj, index) => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -93,7 +93,7 @@ function Upload() {
       return;
     }
 
-    // Collect ONLY the selected AI and custom tags
+    // Collect only the selected AI and custom tags
     const finalTags = [
       ...(selectedTags[imageObj.file.name] || []),
       ...(customTags[imageObj.file.name] || [])
@@ -118,7 +118,7 @@ function Upload() {
 
       const uploadedImageId = uploadResponse.data.data.id;
 
-      // Send ONLY selected tags
+      // Send only selected tags
       await axios.post("http://127.0.0.1:8000/images/finalize-upload/", {
         image_id: uploadedImageId,
         tags: finalTags,
@@ -139,7 +139,7 @@ function Upload() {
     }
   };
 
-  // Quick Upload ALL Images with AI Tags (ignores user-selected tags)
+  // Quick upload all images with AI tags (ignores user-selected tags)
   const handleQuickUploadAll = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -152,7 +152,6 @@ function Upload() {
       formData.append("image", imageObj.file);
 
       try {
-        // Upload the image first
         const uploadResponse = await axios.post("http://127.0.0.1:8000/images/upload/", formData, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -161,8 +160,6 @@ function Upload() {
         });
 
         const uploadedImageId = uploadResponse.data.data.id;
-
-        // Use all 5 AI-generated tags
         const finalTags = aiTags[imageObj.file.name] || [];
 
         await axios.post("http://127.0.0.1:8000/images/finalize-upload/", {
@@ -176,11 +173,8 @@ function Upload() {
         console.error("Quick Upload failed for an image:", error);
       }
     }
-
-    // Remove all images from the list after upload
     setImages([]);
 
-    // Redirect to dashboard after uploading all images
     navigate("/dashboard");
   };
 
@@ -229,7 +223,7 @@ function Upload() {
               />
 
               <button className="finalize-btn" onClick={() => handleFinalizeUpload(imageObj, index)}>
-                Finalize Upload
+              Finalise Upload
               </button>
             </div>
           ))}

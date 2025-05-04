@@ -11,7 +11,6 @@ const Navbar = () => {
 
   const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
 
-  // Fetch profile picture
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem("token");
@@ -38,8 +37,6 @@ const Navbar = () => {
     fetchProfile();
   }, [location.pathname]);
   
-
-  // Close dropdown if clicked outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -67,7 +64,6 @@ const Navbar = () => {
           <NavLink to="/analytics" style={styles.link}>Analytics</NavLink>
           <NavLink to="/explore" style={styles.link}>Explore</NavLink>
 
-          {/* Profile dropdown */}
           <div style={styles.profileWrapper} ref={dropdownRef}>
             <img
               src={profilePic || "/default-avatar.png"}

@@ -242,7 +242,7 @@ const Profile = () => {
               userAlbums.map((album) => (
                 <div key={album.id} className="album-card" onClick={() => navigate(`/album/${album.id}`)}>
                   <img src={album.cover_image_url || "https://via.placeholder.com/150"} alt={album.album_name} />
-                  <p>{album.album_name}</p>
+                  <p>{album.name}</p>
                 </div>
               ))
             ) : (

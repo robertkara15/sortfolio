@@ -89,7 +89,6 @@ const AlbumPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Instead of manually adding the image, fetch the updated album images
       const response = await axios.get(`http://127.0.0.1:8000/images/album/${albumId}/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -132,9 +131,9 @@ const AlbumPage = () => {
       );
 
       setCover(response.data.cover_image_url);
-      setCoverMode(false); // Exit cover selection mode
-      setSelectedCover(null); // Clear selection
-
+      setCoverMode(false);
+      setSelectedCover(null);
+      
       alert("Cover image updated successfully!");
     } catch (error) {
       console.error("Failed to set cover image:", error);
@@ -234,7 +233,7 @@ const updateAlbumTagsFromPrompt = async () => {
       );
 
       alert("Album tags updated successfully!");
-      window.location.reload();  // Refresh the page to reflect updated tags
+      window.location.reload();
   } catch (error) {
       console.error("Failed to update album tags:", error);
   }

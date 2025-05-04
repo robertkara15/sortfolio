@@ -123,7 +123,6 @@ const Dashboard = () => {
         <button className="create-album-btn" onClick={createNewAlbum}>Create New Album</button>
       </div>
 
-      {/* Search & Sort */}
       <div className="dashboard-controls">
         <input
           className="dashboard-search"

@@ -8,6 +8,9 @@ const Explore = () => {
   const [users, setUsers] = useState([]);
   const [images, setImages] = useState([]);
   const [albums, setAlbums] = useState([]);
+  const [sortOption, setSortOption] = useState("latest");
+  const [tagFilter, setTagFilter] = useState("");
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,31 +32,70 @@ const Explore = () => {
           `http://127.0.0.1:8000/images/explore/albums/?search=${searchQuery}`
         );
 
+        let filteredImages = imagesResponse.data;
+        let filteredAlbums = albumsResponse.data;
+
+        // Filter images and albums based on the tag filter
+        if (tagFilter) {
+          filteredImages = filteredImages.filter(img =>
+            img.tags?.some(tag => tag.toLowerCase().includes(tagFilter.toLowerCase()))
+          );
+          filteredAlbums = filteredAlbums.filter(album =>
+            album.name?.toLowerCase().includes(tagFilter.toLowerCase())
+          );
+        }
+
+        // Sort images and albums based on the selected option
+        if (sortOption === "latest") {
+          filteredImages.sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
+        } else if (sortOption === "earliest") {
+          filteredImages.sort((a, b) => new Date(a.uploaded_at) - new Date(b.uploaded_at));
+        } else if (sortOption === "az") {
+          filteredImages.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+          filteredAlbums.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+        }
+
         setUsers(usersResponse.data);
-        setImages(imagesResponse.data);
-        setAlbums(albumsResponse.data);
+        setImages(filteredImages);
+        setAlbums(filteredAlbums);
       } catch (error) {
         console.error("Failed to fetch explore data:", error);
       }
     };
 
     fetchExploreData();
-  }, [searchQuery, navigate]);
+  }, [searchQuery, tagFilter, sortOption, navigate]);
 
   return (
     <div className="explore-container">
       <h2 className="explore-title">Explore</h2>
-  
-      {/* Search Bar */}
-      <input
-        type="text"
-        placeholder="Search users, images, albums..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="explore-search"
-      />
-  
-      {/* Users Section */}
+
+      {/* Search + Sort + Filter Controls */}
+      <div className="explore-controls">
+        <input
+          type="text"
+          placeholder="Search users, images, albums..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="explore-search"
+        />
+
+        <select value={sortOption} onChange={(e) => setSortOption(e.target.value)} className="explore-select">
+          <option value="latest">Sort by: Latest</option>
+          <option value="earliest">Sort by: Earliest</option>
+          <option value="az">Sort by: A-Z</option>
+        </select>
+
+        <input
+          type="text"
+          placeholder="Filter by tag or album name"
+          value={tagFilter}
+          onChange={(e) => setTagFilter(e.target.value)}
+          className="explore-filter"
+        />
+      </div>
+
+      {/* Users */}
       <div className="explore-section">
         <h3 className="explore-section-title">Users</h3>
         <div className="users-grid">
@@ -69,34 +111,33 @@ const Explore = () => {
           ))}
         </div>
       </div>
-  
-      {/* Images Section */}
+
+      {/* Images */}
       <div className="explore-section">
         <h3 className="explore-section-title">Images</h3>
         <div className="images-grid">
           {images.map((img) => (
             <div key={img.id} className="image-card" onClick={() => navigate(`/image/${img.id}`)}>
-              <img src={img.image_url} alt={`${img.posted_by}`} />
+              <img src={img.image_url} alt={img.name || "Image"} />
             </div>
           ))}
         </div>
       </div>
-  
-      {/* Albums Section */}
+
+      {/* Albums */}
       <div className="explore-section">
         <h3 className="explore-section-title">Albums</h3>
         <div className="albums-grid">
           {albums.map((album) => (
             <div key={album.id} className="album-card" onClick={() => navigate(`/album/${album.id}`)}>
               <p>{album.name} (by {album.owner})</p>
-              <img src={album.cover_image_url} alt={`Album cover for ${album.name}`} />
+              <img src={album.cover_image_url || "https://via.placeholder.com/200"} alt={`Album cover for ${album.name}`} />
             </div>
           ))}
         </div>
       </div>
     </div>
   );
-  
 };
 
 export default Explore;

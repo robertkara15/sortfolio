@@ -23,7 +23,7 @@ function Login() {
       navigate("/dashboard");
 
     } catch (error) {
-      console.error("Login error:", error); // Logs full error for debugging
+      console.error("Login error:", error);
 
       let errorMessage = "An error occurred. Please try again.";
 
