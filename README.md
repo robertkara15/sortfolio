@@ -28,10 +28,9 @@ using AI-generated hashtags and semantic album grouping.
 
 To run the application locally, follow the steps below for both backend and frontend setup.
 
-### 1. Clone the repository
+### 1. Enter the repository
 
 ```bash
-git clone https://github.com/robertkara15/sortfolio.git
 cd sortfolio
 ```
 ### 2. Backend Setup
@@ -42,7 +41,7 @@ python -m venv venv # Or: python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
-Set environment variables by creating a `.env` file in the backend root:
+Set environment variables by creating a `.env` file in the sortfolio root:
 
 ```ini
 AWS_ACCESS_KEY_ID=
@@ -50,6 +49,26 @@ AWS_SECRET_ACCESS_KEY=
 AWS_REGION=
 AWS_STORAGE_BUCKET_NAME=
 ```
+PostgreSQL Setup
+
+```bash
+psql -U postgres
+```
+Then in the psql shell
+
+```
+CREATE USER myuser WITH PASSWORD 'gRepstosql';
+CREATE DATABASE mydb OWNER myuser;
+ALTER ROLE myuser CREATEDB;
+```
+Then exit with:
+
+```
+\q
+```
+This creates:
+- A user myuser with password gRepstosql.
+- A database mydb owned by that user.
 
 Then, apply migrations and start the backend server:
 
