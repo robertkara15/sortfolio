@@ -31,7 +31,7 @@ To run the application locally, follow the steps below for both backend and fron
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/sortfolio.git
+git clone https://github.com/robertkara15/sortfolio.git
 cd sortfolio
 ```
 ### 2. Backend Setup
