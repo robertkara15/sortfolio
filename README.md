@@ -38,7 +38,7 @@ cd sortfolio
 
 ```bash
 cd backend
-python -m venv sortfolio_env
+python -m venv sortfolio_env # Or: python3 -m venv sortfolio_env
 source sortfolio_env/bin/activate  # On Windows: sortfolio_env\Scripts\activate
 pip install -r requirements.txt
 ```
