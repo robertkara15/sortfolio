@@ -1,3 +1,6 @@
+// This page allows users to create a new account by providing a username, email, and password,
+// and redirects them to the login page upon successful registration.
+
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -23,7 +26,6 @@ function Register() {
       alert("Registration failed: " + error.response.data.error);
     }
   };
-
 
   return (
     <div className="register-container">

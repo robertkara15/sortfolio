@@ -1,3 +1,6 @@
+// This page allows users to view and update their profile details, upload a profile picture,
+// change their password, and delete their account. It also displays the user's albums and images.
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -41,14 +44,12 @@ const Profile = () => {
         const actualUserId = response.data.id;
         setIsOwner(userId === "me");
 
-        // Fetch User Images
         const imagesResponse = await axios.get(
           `http://127.0.0.1:8000/images/user-images/${actualUserId}/`,
           { headers }
         );
         setUserImages(imagesResponse.data);
 
-        // Fetch User Albums
         const albumsResponse = await axios.get(
           `http://127.0.0.1:8000/images/user-albums/${actualUserId}/`,
           { headers }
@@ -63,7 +64,6 @@ const Profile = () => {
     fetchProfileData();
   }, [userId, navigate]);
 
-  // Handle Profile Picture Upload
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
   };

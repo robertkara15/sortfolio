@@ -1,3 +1,7 @@
+# This module defines the URL patterns for image-related API endpoints.
+# It includes routes for image uploads, album management, tag operations,
+# and public exploration of images and albums.
+
 from django.urls import path
 from .views import ( 
     ImageUploadView, 

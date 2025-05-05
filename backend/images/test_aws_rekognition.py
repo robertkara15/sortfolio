@@ -1,3 +1,7 @@
+# This module contains unit tests for the AWS Rekognition integration.
+# It tests the "analyze_image" function to ensure correct behaviour for both
+# successful label detection and error handling using mocked AWS responses.
+
 from django.test import TestCase
 from unittest.mock import patch
 from images.aws_rekognition import analyze_image

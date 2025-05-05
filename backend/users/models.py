@@ -1,3 +1,7 @@
+# This module defines the database models for user-related data.
+# It includes the Profile model, which extends the User model with additional fields
+# such as a profile picture.
+
 from django.db import models
 from django.contrib.auth.models import User
 

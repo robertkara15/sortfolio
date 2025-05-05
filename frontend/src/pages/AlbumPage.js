@@ -1,3 +1,6 @@
+// This page allows users to view album details, manage album images and tags,
+// update the album cover, and delete the album if they are the owner.
+
 import axios from "axios";
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -23,6 +26,10 @@ const AlbumPage = () => {
   const [coverMode, setCoverMode] = useState(false);
   const [selectedCover, setSelectedCover] = useState(null);
   const navigate = useNavigate();
+
+// Album data fetching
+// This section defines the "fetchAlbumData" function, which retrieves album details, 
+// images, tags, and ownership information.
 
   const fetchAlbumData = useCallback(async () => {
     try {
@@ -73,6 +80,9 @@ const AlbumPage = () => {
     }
   }, [albumId]); 
   
+// Album image management
+// This section includes functions for adding images to the album, 
+// removing images, and setting the album cover.
 
   const addToAlbum = async (imageId) => {
     try {
@@ -162,8 +172,9 @@ const handleDeleteAlbum = async () => {
     }
 };
 
-
-
+// Album tag management
+// This section includes functions for adding tags, removing tags, 
+// and updating tags using a semantic search prompt.
 
 const addTagsToAlbum = async (tag) => {
   try {

@@ -1,3 +1,7 @@
+# This module defines the URL patterns for user-related API endpoints.
+# It includes routes for user registration, login, profile management,
+# profile picture uploads, and account deletion.
+
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static

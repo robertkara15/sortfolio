@@ -1,3 +1,7 @@
+# This module contains unit tests for the user-related serializers.
+# It tests the UserSerializer to ensure correct behaviour, including 
+# password hashing during user creation.
+
 from django.test import TestCase
 from users.serializers import UserSerializer
 

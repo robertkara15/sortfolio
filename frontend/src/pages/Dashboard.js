@@ -1,3 +1,6 @@
+// This page allows users to view and manage their albums and images, create new albums,
+// upload images, and filter or sort their content.
+
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";

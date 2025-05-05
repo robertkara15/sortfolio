@@ -1,3 +1,6 @@
+// This page allows users to view detailed information about an 
+// image, edit its name, manage tags, and navigate back to the previous page.
+
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -18,19 +21,17 @@ const ImageDetail = () => {
         const token = localStorage.getItem("token");
         if (!token) return;
   
-        // Fetch current user
         const userResponse = await axios.get("http://127.0.0.1:8000/users/me/", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const currentUsername = userResponse.data.username;
         setCurrentUser(userResponse.data);
   
-        // Fetch image data
+
         const imageResponse = await axios.get(`http://127.0.0.1:8000/images/image/${imageId}/`);
         const imgData = imageResponse.data;
         setImageData(imgData);
   
-        // Set isOwner only after both are fetched
         if (imgData.posted_by === currentUsername) {
           setIsOwner(true);
         } else {

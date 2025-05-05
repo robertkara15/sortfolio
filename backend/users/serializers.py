@@ -1,3 +1,7 @@
+# This module defines serializers for user-related data.
+# It includes the UserSerializer, which handles serialisation and deserialisation
+# of User model instances, including password hashing during user creation.
+
 from django.contrib.auth.models import User
 from rest_framework import serializers
 

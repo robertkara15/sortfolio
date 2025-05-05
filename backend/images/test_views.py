@@ -1,3 +1,7 @@
+# This module contains unit tests for the image-related API views.
+# It tests endpoints for image uploads, album creation, tag generation,
+# and retrieving user-specific data to ensure correct behaviour.
+
 from django.test import TestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient

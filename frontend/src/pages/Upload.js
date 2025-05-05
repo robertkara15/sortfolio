@@ -1,3 +1,6 @@
+// This page allows users to drag and drop images, generate AI tags, select or add custom tags,
+// and upload images to the server with finalised tags.
+
 import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { useNavigate } from "react-router-dom";
@@ -93,7 +96,6 @@ function Upload() {
       return;
     }
 
-    // Collect only the selected AI and custom tags
     const finalTags = [
       ...(selectedTags[imageObj.file.name] || []),
       ...(customTags[imageObj.file.name] || [])

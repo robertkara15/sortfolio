@@ -1,3 +1,7 @@
+# This module contains unit tests for the database models.
+# It tests the string representations and basic functionality of the
+# "UploadedImage" and "Album" models to ensure correct behaviour.
+
 from django.test import TestCase
 from django.contrib.auth.models import User
 from images.models import UploadedImage, Album

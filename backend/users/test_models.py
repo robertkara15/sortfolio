@@ -1,3 +1,6 @@
+# This module contains unit tests for the user-related database models.
+# It tests the creation and string representation of the Profile model.
+
 from django.test import TestCase
 from django.contrib.auth.models import User
 from users.models import Profile

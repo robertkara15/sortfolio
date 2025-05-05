@@ -1,3 +1,6 @@
+// This page allows users to search for and browse public users, images, and albums,
+// with options to filter by tags and sort by various criteria.
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";

@@ -1,3 +1,6 @@
+// This page allows users to log in by providing their username and password,
+// and redirects them to the dashboard upon successful authentication.
+
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";

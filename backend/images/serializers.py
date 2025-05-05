@@ -1,3 +1,7 @@
+# This module defines serializers for converting model instances into JSON representations.
+# It includes serializers for user-uploaded images and albums, providing fields for metadata
+# and methods for generating URLs for images stored in S3.
+
 from rest_framework import serializers
 from .models import UploadedImage, Album
 from django.contrib.auth.models import User

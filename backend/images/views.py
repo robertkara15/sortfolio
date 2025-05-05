@@ -1,3 +1,7 @@
+# This module defines the API views for handling image-related operations.
+# It includes endpoints for image uploads, album management, tag generation,
+# analytics, and public exploration of images and albums.
+
 import os
 import boto3
 from django.shortcuts import render
@@ -22,6 +26,9 @@ import pandas as pd
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from users.models import Profile 
+
+# AWS Rekognition and S3 clients
+# These clients are used for interacting with AWS services for image analysis and storage.
 
 # Converting tags into vector embeddings
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -54,6 +61,9 @@ rekognition_client = boto3.client(
     aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
     region_name=settings.AWS_REGION
 )
+
+# Image upload and processing views
+# These views handle image uploads, tag generation, and finalising uploads with user-selected tags.
 
 class ImageUploadView(APIView):
     permission_classes = [IsAuthenticated]
@@ -122,6 +132,9 @@ class UserImagesView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=500)
         
+# User-specific views
+# These views provide endpoints for retrieving images and albums specific to a user.
+
 class UserSpecificImagesView(APIView):
     permission_classes = [AllowAny]
 
@@ -164,6 +177,9 @@ class UserSpecificAlbumsView(APIView):
             for album in albums
         ]
         return Response(album_data, status=200)
+
+# Album management views
+# These views handle album creation, updating tags, setting cover images, and managing album contents.
 
 class FinalizeImageUploadView(APIView):
     permission_classes = [IsAuthenticated]
@@ -525,7 +541,8 @@ class EditImageTagsView(APIView):
 
         return Response({"message": "Tags updated successfully", "tags": image.tags}, status=200)
 
-
+# Analytics views
+# These views provide insights into user data, such as tag distribution and top tags.
 
 class AnalyticsView(APIView):
     permission_classes = [IsAuthenticated]

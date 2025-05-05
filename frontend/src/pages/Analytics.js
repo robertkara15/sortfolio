@@ -1,3 +1,6 @@
+// This page provides insights into user-uploaded images, including tag distribution
+// and the most frequently used tags, displayed using bar and pie charts.
+
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Bar, Pie } from "react-chartjs-2";
@@ -38,7 +41,6 @@ const Analytics = () => {
 
   const { total_images, top_tags, tag_distribution } = analyticsData;
 
-  // Bar Chart Data (Images per Tag)
   const barChartData = {
     labels: top_tags.length > 0 ? top_tags.map((tag) => tag[0]) : ["No Data"],
     datasets: [

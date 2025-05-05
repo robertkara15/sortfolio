@@ -1,3 +1,8 @@
+// This component defines the navigation bar for the application.
+// It includes links to key sections such as Dashboard, Upload, Analytics, and Explore.
+// The navigation bar also displays the user's profile picture and provides a dropdown menu
+// for accessing the profile page or logging out.
+
 import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";

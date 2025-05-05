@@ -1,3 +1,7 @@
+# This module contains unit tests for the user-related API views.
+# It tests endpoints for user registration, login, profile management,
+# profile picture uploads, and account deletion to ensure correct behaviour.
+
 from django.test import TestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient

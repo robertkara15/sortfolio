@@ -1,3 +1,7 @@
+# This module defines the API views for user-related operations.
+# It includes endpoints for user registration, login, profile management,
+# profile picture uploads, and account deletion.
+
 from django.shortcuts import render
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
@@ -18,6 +22,9 @@ import boto3
 from rest_framework.parsers import MultiPartParser, FormParser
 import json
 import traceback
+
+# User profile views
+# These views handle fetching and updating user profile details, including profile pictures.
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -54,7 +61,7 @@ class UserProfileView(APIView):
             return Response(profile_data, status=200)
 
         except Exception as e:
-            traceback.print_exc()  # Print full error details to Django logs
+            traceback.print_exc()
             return Response({"error": f"Unexpected error: {str(e)}"}, status=500)
 
 
@@ -113,7 +120,7 @@ class UploadProfilePictureView(APIView):
 
             # Update the profile picture URL in the database
             profile, _ = Profile.objects.get_or_create(user=user)
-            profile.profile_picture = s3_key  # Store only the S3 path
+            profile.profile_picture = s3_key 
             profile.save()
 
             profile_picture_url = f"https://{s3_bucket}.s3.amazonaws.com/{s3_key}"
@@ -128,6 +135,8 @@ class UploadProfilePictureView(APIView):
             return Response({"error": f"Unexpected error: {str(e)}"}, status=500)
 
 
+# User registration and authentication views
+# These views handle user registration, login, and token generation.
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -154,6 +163,9 @@ class LoginView(APIView):
                 "access": str(refresh.access_token),
             })
         return Response({"error": "Invalid credentials"}, status=400)
+
+# Account management views
+# These views handle account deletion and related cleanup operations.
 
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]

@@ -1,3 +1,7 @@
+# This module integrates with AWS Rekognition to analyse images stored in an S3 bucket.
+# It uses the AWS SDK (boto3) to detect labels in images, providing a simple interface
+# for retrieving image metadata such as objects, scenes, and activities.
+
 import boto3
 import os
 

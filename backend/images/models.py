@@ -1,3 +1,7 @@
+# This module defines the database models for handling image uploads and albums.
+# It includes models for storing user-uploaded images and organising them into albums.
+# The models use Django's ORM and support features such as tagging and user-specific storage paths.
+
 from django.db import models
 from django.conf import settings
 
