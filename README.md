@@ -55,7 +55,6 @@ Then, apply migrations and start the backend server:
 
 ```bash
 python manage.py migrate
-python manage.py createsuperuser
 python manage.py runserver
 ```
 
