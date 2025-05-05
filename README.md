@@ -42,6 +42,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 Set environment variables by creating a `.env` file in the sortfolio root:
+See Supporting Material.pdf for the variables to copy paste in the env. file
 
 ```ini
 AWS_ACCESS_KEY_ID=
