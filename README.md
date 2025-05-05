@@ -38,8 +38,8 @@ cd sortfolio
 
 ```bash
 cd backend
-python -m venv sortfolio_env # Or: python3 -m venv sortfolio_env
-source sortfolio_env/bin/activate  # On Windows: sortfolio_env\Scripts\activate
+python -m venv venv # Or: python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 Set environment variables by creating a `.env` file in the backend root:
