@@ -87,7 +87,7 @@ npm start
 
 The frontend will be available at `http://localhost:3000` and will proxy requests to the backend at `http://localhost:8000`.
 
-
+You will have to make your own logins using the register tab, use images from https://unsplash.com to populate albums.
 
 
 
